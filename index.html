@@ -3,24 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Circularis • Visualização 3D</title>
+  <title>Circularis • Gráfico 3D</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 
-    body {
-      min-height: 100vh;
-      background: #050f0c;
-      color: #ecfdf5;
-      overflow-x: hidden;
+    html, body {
+      height: 100dvh;
+      width: 100%;
+      background: #0b2920;
+      color: #ffffff;
+      overflow: hidden;
+    }
+
+    .tela-3d {
       position: relative;
+      width: 100%;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(12px, 3vw, 24px);
     }
 
     #canvas-3d {
       position: fixed;
       inset: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100dvh;
       display: block;
       z-index: 1;
       touch-action: none;
@@ -31,112 +41,103 @@
       cursor: grabbing;
     }
 
-    .hud-topo {
-      position: fixed;
-      top: 16px;
-      left: 16px;
-      right: 16px;
-      z-index: 10;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      pointer-events: none;
-    }
-
-    .hud-titulo {
-      background: rgba(8, 26, 20, 0.82);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(101, 214, 155, 0.28);
+    .topo-limpo {
+      position: relative;
+      z-index: 2;
+      align-self: flex-start;
+      max-width: min(92vw, 420px);
+      background: rgba(255, 255, 255, 0.94);
+      color: #071f18;
+      padding: 10px 14px;
       border-radius: 12px;
-      padding: 12px 16px;
-      pointer-events: auto;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
     }
 
-    .hud-titulo h1 {
-      font-size: 1.05rem;
+    .topo-limpo h1 {
+      font-size: clamp(0.95rem, 3.8vw, 1.15rem);
       font-weight: 800;
-      color: #65d69b;
+      line-height: 1.25;
+      color: #071f18;
     }
 
-    .hud-titulo p {
-      font-size: 0.78rem;
-      color: #a7f3d0;
+    .topo-limpo p {
+      font-size: clamp(0.72rem, 2.8vw, 0.8rem);
+      color: #2e7d32;
+      font-weight: 700;
       margin-top: 2px;
     }
 
-    .etiquetas-flutuantes {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      z-index: 10;
+    .faixa-etiquetas {
+      position: relative;
+      z-index: 2;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       overflow-x: auto;
-      padding-bottom: 6px;
-      pointer-events: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .tag-3d {
-      min-width: 210px;
-      background: rgba(8, 26, 20, 0.86);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-top: 4px solid #2e7d32;
-      border-radius: 12px;
-      padding: 10px 14px;
-      flex-shrink: 0;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    .etiqueta-item {
+      flex: 0 0 auto;
+      width: clamp(165px, 44vw, 210px);
+      background: rgba(255, 255, 255, 0.95);
+      color: #071f18;
+      border-radius: 10px;
+      padding: 9px 11px;
+      border-left: 4px solid #2e7d32;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
     }
 
-    .tag-3d.destaque {
-      border-color: rgba(101, 214, 155, 0.55);
-      background: rgba(13, 46, 35, 0.92);
-    }
-
-    .tag-linha-1 {
+    .etiqueta-cabecalho {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       font-weight: 800;
-      color: #6ee7b7;
-      margin-bottom: 4px;
+      color: #0f4033;
+      margin-bottom: 2px;
     }
 
-    .tag-nome {
-      font-size: 0.92rem;
+    .etiqueta-pts {
+      background: #e8f5e9;
+      color: #1b5e20;
+      padding: 1px 6px;
+      border-radius: 5px;
+    }
+
+    .etiqueta-nome {
+      font-size: clamp(0.8rem, 3.2vw, 0.88rem);
       font-weight: 800;
-      color: #ffffff;
-      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .tag-valor {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #34d399;
+    .etiqueta-sub {
+      font-size: 0.7rem;
+      color: #374151;
+      font-weight: 600;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .tag-detalhe {
-      font-size: 0.72rem;
-      color: #cbd5e1;
-      margin-top: 3px;
-    }
-
-    .sem-dados {
+    .aviso-vazio {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 20;
-      background: rgba(8, 26, 20, 0.94);
-      border: 1px solid rgba(101, 214, 155, 0.35);
-      border-radius: 14px;
-      padding: 22px;
-      max-width: 360px;
-      width: 90%;
+      z-index: 5;
+      width: min(88vw, 340px);
+      background: rgba(255, 255, 255, 0.96);
+      color: #071f18;
+      padding: 18px;
+      border-radius: 12px;
       text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
       display: none;
     }
   </style>
@@ -144,25 +145,24 @@
 <body>
   <canvas id="canvas-3d"></canvas>
 
-  <div class="hud-topo">
-    <div class="hud-titulo">
-      <h1 id="titulo-3d">Visualização 3D</h1>
-      <p id="subtitulo-3d">Arraste para girar • Dados da tabela</p>
-    </div>
+  <div class="tela-3d">
+    <header class="topo-limpo">
+      <h1 id="titulo-grafico">Gráfico 3D</h1>
+      <p id="subtitulo-grafico">Arraste para girar • Dados da tabela</p>
+    </header>
+
+    <section id="faixa-etiquetas" class="faixa-etiquetas"></section>
   </div>
 
-  <div id="etiquetas-container" class="etiquetas-flutuantes"></div>
-
-  <div id="sem-dados" class="sem-dados">
-    <p style="font-weight:700; margin-bottom:8px;">Nenhum dado recebido pelo QR Code.</p>
-    <p style="font-size:0.82rem; color:#a7f3d0;">Gere um novo QR Code na tela de Métricas para carregar os valores da tabela.</p>
+  <div id="aviso-vazio" class="aviso-vazio">
+    Nenhum dado recebido pelo QR Code. Gere o QR Code na tela de Métricas.
   </div>
 
   <script>
-    const CORES = [0x10b981, 0x059669, 0x0284c7, 0x84cc16, 0x14b8a6, 0x34d399];
-    const CORES_HEX = ['#10b981', '#059669', '#0284c7', '#84cc16', '#14b8a6', '#34d399'];
+    const CORES_3D = [0x1b5e20, 0x2e7d32, 0x43a047, 0x66bb6a, 0x0288d1, 0x00897b];
+    const CORES_BORDA = ['#1b5e20', '#2e7d32', '#43a047', '#66bb6a', '#0288d1', '#00897b'];
 
-    function obterDadosTabela() {
+    function lerDadosTabelaURL() {
       const params = new URLSearchParams(window.location.search);
       const raw = params.get('grafico');
       if (!raw) return null;
@@ -182,140 +182,158 @@
           }))
         };
       } catch (e) {
-        console.error('Erro ao interpretar dados da tabela:', e);
+        console.error('Erro ao ler dados da tabela:', e);
         return null;
       }
     }
 
-    function criarEtiquetaSprite(titulo, subtitulo, corHex) {
+    function criarSpriteEtiqueta(linha1, linha2, corBorda) {
       const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 150;
+      canvas.width = 440;
+      canvas.height = 132;
       const ctx = canvas.getContext('2d');
 
-      ctx.fillStyle = 'rgba(7, 24, 18, 0.92)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
       ctx.beginPath();
-      ctx.roundRect(10, 10, 492, 130, 20);
+      ctx.roundRect(8, 8, 424, 116, 18);
       ctx.fill();
 
       ctx.lineWidth = 5;
-      ctx.strokeStyle = corHex;
+      ctx.strokeStyle = corBorda;
       ctx.stroke();
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 32px Arial';
-      ctx.fillText(titulo.slice(0, 22), 28, 56);
+      ctx.fillStyle = '#071f18';
+      ctx.font = 'bold 28px Arial';
+      ctx.fillText(linha1.slice(0, 20), 22, 52);
 
-      ctx.fillStyle = '#6ee7b7';
-      ctx.font = 'bold 26px Arial';
-      ctx.fillText(subtitulo.slice(0, 26), 28, 102);
+      ctx.fillStyle = '#1b5e20';
+      ctx.font = 'bold 23px Arial';
+      ctx.fillText(linha2.slice(0, 24), 22, 94);
 
-      const tex = new THREE.CanvasTexture(canvas);
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-      const sprite = new THREE.Sprite(mat);
-      sprite.scale.set(2.6, 0.76, 1);
+      const textura = new THREE.CanvasTexture(canvas);
+      const material = new THREE.SpriteMaterial({ map: textura, transparent: true });
+      const sprite = new THREE.Sprite(material);
       return sprite;
     }
 
-    function renderizarEtiquetasHUD(itens) {
-      const container = document.getElementById('etiquetas-container');
+    function renderizarEtiquetasInferiores(itens) {
+      const container = document.getElementById('faixa-etiquetas');
       container.innerHTML = itens.map((item, idx) => {
-        const cor = CORES_HEX[idx % CORES_HEX.length];
+        const cor = CORES_BORDA[idx % CORES_BORDA.length];
+        const sub = item.valor || item.detalhe || `${item.score} pontos`;
         return `
-          <div class="tag-3d ${idx === 0 ? 'destaque' : ''}" style="border-top-color:${cor};">
-            <div class="tag-linha-1">
+          <div class="etiqueta-item" style="border-left-color:${cor};">
+            <div class="etiqueta-cabecalho">
               <span>#${item.pos ?? (idx + 1)}</span>
-              <span>${item.score} pts</span>
+              <span class="etiqueta-pts">${item.score} pts</span>
             </div>
-            <div class="tag-nome">${item.nome}</div>
-            ${item.valor ? `<div class="tag-valor">${item.valor}</div>` : ''}
-            ${item.detalhe ? `<div class="tag-detalhe">${item.detalhe}</div>` : ''}
+            <div class="etiqueta-nome">${item.nome}</div>
+            <div class="etiqueta-sub">${sub}</div>
           </div>
         `;
       }).join('');
     }
 
-    function iniciarCena3D(itens) {
+    function iniciarGrafico3D(itens) {
       const canvas = document.getElementById('canvas-3d');
       const scene = new THREE.Scene();
 
       const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-      camera.position.set(0, 4.2, 5.8);
-      camera.lookAt(0, 0, 0);
-
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-      const luz = new THREE.DirectionalLight(0xa7f3d0, 1.0);
-      luz.position.set(4, 8, 5);
-      scene.add(luz);
+      function ajustarProporcaoTela() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const ehCelular = w < 640;
 
-      const grupo = new THREE.Group();
-      scene.add(grupo);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
 
-      const soma = itens.reduce((acc, it) => acc + Math.max(Number(it.score) || 0, 0.1), 0);
-      let angulo = 0;
-      const raio = 1.8;
+        if (ehCelular) {
+          camera.position.set(0, 5.2, 7.6);
+        } else {
+          camera.position.set(0, 4.2, 5.8);
+        }
+        camera.lookAt(0, -0.1, 0);
+      }
+
+      ajustarProporcaoTela();
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+      const luzDirecional = new THREE.DirectionalLight(0xffffff, 0.85);
+      luzDirecional.position.set(4, 7, 5);
+      scene.add(luzDirecional);
+
+      const grupoPizza = new THREE.Group();
+      scene.add(grupoPizza);
+
+      const total = itens.reduce((acc, it) => acc + Math.max(Number(it.score) || 0, 0.1), 0);
+      let anguloAtual = 0;
+      const raio = 1.65;
+      const sprites = [];
 
       itens.forEach((item, idx) => {
-        const val = Math.max(Number(item.score) || 0, 0.1);
-        const fatia = (val / soma) * Math.PI * 2;
-        const corNum = CORES[idx % CORES.length];
-        const corHex = CORES_HEX[idx % CORES_HEX.length];
+        const valorPos = Math.max(Number(item.score) || 0, 0.1);
+        const anguloFatia = (valorPos / total) * Math.PI * 2;
+        const corHex = CORES_3D[idx % CORES_3D.length];
+        const corBorda = CORES_BORDA[idx % CORES_BORDA.length];
 
         const forma = new THREE.Shape();
         forma.moveTo(0, 0);
-        forma.absarc(0, 0, raio, angulo, angulo + fatia, false);
+        forma.absarc(0, 0, raio, anguloAtual, anguloAtual + anguloFatia, false);
         forma.lineTo(0, 0);
 
         const geo = new THREE.ExtrudeGeometry(forma, {
-          depth: 0.6,
+          depth: 0.55,
           bevelEnabled: true,
           bevelSegments: 2,
           steps: 1,
-          bevelSize: 0.03,
-          bevelThickness: 0.03
+          bevelSize: 0.025,
+          bevelThickness: 0.025
         });
         geo.rotateX(-Math.PI / 2);
 
         const mat = new THREE.MeshStandardMaterial({
-          color: corNum,
-          roughness: 0.3,
-          metalness: 0.2
+          color: corHex,
+          roughness: 0.35,
+          metalness: 0.15
         });
 
         const fatiaMesh = new THREE.Mesh(geo, mat);
-        const meio = angulo + fatia / 2;
-        const offset = idx === 0 ? 0.2 : 0.05;
-        fatiaMesh.position.x = Math.cos(meio) * offset;
-        fatiaMesh.position.z = Math.sin(meio) * offset;
-        grupo.add(fatiaMesh);
+        const anguloMeio = anguloAtual + anguloFatia / 2;
+        const afastamento = idx === 0 ? 0.16 : 0.05;
+        fatiaMesh.position.x = Math.cos(anguloMeio) * afastamento;
+        fatiaMesh.position.z = Math.sin(anguloMeio) * afastamento;
+        grupoPizza.add(fatiaMesh);
 
-        const sprite = criarEtiquetaSprite(
+        const sprite = criarSpriteEtiqueta(
           `#${item.pos ?? (idx + 1)} ${item.nome}`,
           `${item.score} pts${item.valor ? ' • ' + item.valor : ''}`,
-          corHex
+          corBorda
         );
+        const ehCelular = window.innerWidth < 640;
+        sprite.scale.set(ehCelular ? 2.15 : 2.35, ehCelular ? 0.65 : 0.7, 1);
         sprite.position.set(
-          Math.cos(meio) * (raio + 0.9),
-          0.95 + (idx % 2) * 0.3,
-          Math.sin(meio) * (raio + 0.9)
+          Math.cos(anguloMeio) * (raio + 0.85),
+          0.9 + (idx % 2) * 0.25,
+          Math.sin(anguloMeio) * (raio + 0.85)
         );
-        grupo.add(sprite);
+        grupoPizza.add(sprite);
+        sprites.push(sprite);
 
-        angulo += fatia;
+        anguloAtual += anguloFatia;
       });
 
       let arrastando = false;
-      let prevX = 0;
-      let prevY = 0;
+      let ultimoX = 0;
+      let ultimoY = 0;
 
       canvas.addEventListener('pointerdown', (e) => {
         arrastando = true;
-        prevX = e.clientX;
-        prevY = e.clientY;
+        ultimoX = e.clientX;
+        ultimoY = e.clientY;
       });
 
       window.addEventListener('pointerup', () => {
@@ -324,40 +342,44 @@
 
       window.addEventListener('pointermove', (e) => {
         if (!arrastando) return;
-        grupo.rotation.y += (e.clientX - prevX) * 0.01;
-        grupo.rotation.x = Math.max(-0.5, Math.min(0.6, grupo.rotation.x + (e.clientY - prevY) * 0.008));
-        prevX = e.clientX;
-        prevY = e.clientY;
+        grupoPizza.rotation.y += (e.clientX - ultimoX) * 0.01;
+        grupoPizza.rotation.x = Math.max(-0.45, Math.min(0.55, grupoPizza.rotation.x + (e.clientY - ultimoY) * 0.008));
+        ultimoX = e.clientX;
+        ultimoY = e.clientY;
       });
 
       window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        ajustarProporcaoTela();
+        const ehCelular = window.innerWidth < 640;
+        sprites.forEach((sp) => {
+          sp.scale.set(ehCelular ? 2.15 : 2.35, ehCelular ? 0.65 : 0.7, 1);
+        });
       });
 
-      function loop() {
-        requestAnimationFrame(loop);
-        if (!arrastando) grupo.rotation.y += 0.004;
+      function animar() {
+        requestAnimationFrame(animar);
+        if (!arrastando) {
+          grupoPizza.rotation.y += 0.005;
+        }
         renderer.render(scene, camera);
       }
-      loop();
+      animar();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      const dados = obterDadosTabela();
+      const dados = lerDadosTabelaURL();
       if (!dados || !dados.itens.length) {
-        document.getElementById('sem-dados').style.display = 'block';
+        document.getElementById('aviso-vazio').style.display = 'block';
         return;
       }
 
       const ordenados = [...dados.itens].sort((a, b) => Number(b.score) - Number(a.score));
-      document.getElementById('titulo-3d').innerText = dados.titulo;
-      document.getElementById('subtitulo-3d').innerText =
+      document.getElementById('titulo-grafico').innerText = dados.titulo;
+      document.getElementById('subtitulo-grafico').innerText =
         dados.tipo === 'cooperativa' ? 'Cooperativas • Conforme a tabela' : 'Fornecedores • Conforme a tabela';
 
-      iniciarCena3D(ordenados);
-      renderizarEtiquetasHUD(ordenados);
+      iniciarGrafico3D(ordenados);
+      renderizarEtiquetasInferiores(ordenados);
     });
   </script>
 </body>
