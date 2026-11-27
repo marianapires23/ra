@@ -83,22 +83,10 @@
       border-radius: 50%;
       flex-shrink: 0;
     }
-    .item-info {
-      flex: 1;
-    }
     .item-nome {
       font-weight: 800;
       font-size: 0.95rem;
       color: #071f18;
-    }
-    .item-detalhe {
-      font-size: 0.78rem;
-      color: #475569;
-      margin-top: 2px;
-    }
-    .item-score-box {
-      text-align: right;
-      flex-shrink: 0;
     }
     .score-badge {
       display: inline-block;
@@ -108,12 +96,6 @@
       font-size: 0.85rem;
       padding: 4px 10px;
       border-radius: 6px;
-    }
-    .valor-texto {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #15803d;
-      margin-top: 4px;
     }
     .vazio {
       text-align: center;
@@ -136,7 +118,7 @@
         <canvas id="graficoPizzaRA"></canvas>
       </div>
       <div id="mensagem-vazia" class="vazio" style="display:none;">
-        Nenhum dado de tabela foi recebido neste QR Code. Gere o QR Code novamente pela tela de Métricas.
+        Nenhum dado recebido neste QR Code. Gere um novo QR Code na tela de Métricas.
       </div>
     </div>
 
@@ -149,60 +131,45 @@
   <script>
     const CORES_PADRAO = ['#0d231a', '#1b4d3e', '#2e7d32', '#52a368', '#0288d1', '#0f766e'];
 
-    function decodificarBase64URL(str) {
-      let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) base64 += '=';
-      const bin = atob(base64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      return new TextDecoder().decode(bytes);
-    }
-
     function obterDadosDaURL() {
       const params = new URLSearchParams(window.location.search);
-
       const rawGrafico = params.get('grafico');
+
       if (rawGrafico) {
         try {
-          const parsed = JSON.parse(decodeURIComponent(rawGrafico));
-          const itens = Array.isArray(parsed.i) ? parsed.i : [];
+          const parsed = JSON.parse(rawGrafico);
+          const itens = Array.isArray(parsed.i) ? parsed.i : (Array.isArray(parsed.itens) ? parsed.itens : []);
           return {
-            titulo: parsed.t || 'Ranking',
-            tipo: parsed.tp || 'industria',
+            titulo: parsed.t || parsed.titulo || 'Ranking',
+            tipo: parsed.tp || parsed.tipo || 'industria',
             itens: itens.map((it, idx) => ({
-              pos: it.p ?? (idx + 1),
-              nome: it.n || `Item ${idx + 1}`,
-              score: Number(it.s ?? 0),
-              valor: it.v || '',
-              detalhe: it.d || ''
+              pos: it.p ?? it.pos ?? (idx + 1),
+              nome: it.n || it.nome || `Item ${idx + 1}`,
+              score: Number(it.s ?? it.score ?? 0)
             }))
           };
         } catch (e) {
-          console.error('Erro ao ler parâmetro ?grafico=:', e);
+          console.error('Erro ao ler ?grafico=:', e);
         }
       }
 
-      const hash = window.location.hash || '';
-      const match = hash.match(/dados=([^&]+)/);
-      if (match && match[1]) {
-        try {
-          const decoded = JSON.parse(decodificarBase64URL(decodeURIComponent(match[1])));
-          const itens = Array.isArray(decoded.itens) ? decoded.itens : [];
-          return {
-            titulo: decoded.titulo || 'Ranking',
-            tipo: decoded.tipo || 'industria',
-            itens: itens.map((it, idx) => ({
-              pos: it.pos ?? (idx + 1),
-              nome: it.nome || `Item ${idx + 1}`,
-              score: Number(it.score ?? 0),
-              valor: it.valorPrincipalFmt || '',
-              detalhe: it.detalheExtra || ''
-            }))
-          };
-        } catch (e) {
-          console.error('Erro ao ler #dados=:', e);
+      try {
+        const salvo = localStorage.getItem('circularis_ra_grafico_atual');
+        if (salvo) {
+          const parsedLocal = JSON.parse(salvo);
+          if (Array.isArray(parsedLocal.itens) && parsedLocal.itens.length > 0) {
+            return {
+              titulo: parsedLocal.titulo || 'Ranking',
+              tipo: parsedLocal.tipo || 'industria',
+              itens: parsedLocal.itens.map((it, idx) => ({
+                pos: it.pos ?? (idx + 1),
+                nome: it.nome || `Item ${idx + 1}`,
+                score: Number(it.score ?? 0)
+              }))
+            };
+          }
         }
-      }
+      } catch (_) {}
 
       return null;
     }
@@ -245,16 +212,7 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 11 } } },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const item = ordenados[context.dataIndex];
-                  const extraValor = item && item.valor ? ` • ${item.valor}` : '';
-                  return ` ${context.label}: ${context.raw} pts${extraValor}`;
-                }
-              }
-            }
+            legend: { position: 'bottom', labels: { font: { size: 11 } } }
           }
         }
       });
@@ -263,14 +221,8 @@
       listaDetalhes.innerHTML = ordenados.map((item, idx) => `
         <div class="item-row ${idx === 0 ? 'lider' : ''}">
           <span class="dot" style="background:${cores[idx]}"></span>
-          <div class="item-info">
-            <div class="item-nome">#${item.pos ?? (idx + 1)} • ${item.nome}</div>
-            ${item.detalhe ? `<div class="item-detalhe">${item.detalhe}</div>` : ''}
-          </div>
-          <div class="item-score-box">
-            <span class="score-badge">${item.score} pts</span>
-            ${item.valor ? `<div class="valor-texto">${item.valor}</div>` : ''}
-          </div>
+          <div class="item-nome">#${item.pos ?? (idx + 1)} • ${item.nome}</div>
+          <span class="score-badge">${item.score} pts</span>
         </div>
       `).join('');
     });
