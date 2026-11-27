@@ -9,21 +9,11 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
 
     html, body {
-      height: 100dvh;
+      min-height: 100dvh;
       width: 100%;
       background: #0b2920;
       color: #ffffff;
-      overflow: hidden;
-    }
-
-    .tela-3d {
-      position: relative;
-      width: 100%;
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: clamp(12px, 3vw, 24px);
+      overflow-x: hidden;
     }
 
     #canvas-3d {
@@ -37,63 +27,109 @@
       cursor: pointer;
     }
 
-    .topo-limpo {
+    .camada-ui {
       position: relative;
       z-index: 2;
-      align-self: flex-start;
-      max-width: min(92vw, 420px);
-      background: rgba(255, 255, 255, 0.94);
+      min-height: 100dvh;
+      padding: clamp(12px, 3vw, 22px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .topo-painel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: min(100%, 440px);
+      pointer-events: auto;
+    }
+
+    .cabecalho-card {
+      background: rgba(255, 255, 255, 0.95);
       color: #071f18;
-      padding: 10px 14px;
+      padding: 11px 14px;
       border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
     }
 
-    .topo-limpo h1 {
-      font-size: clamp(0.95rem, 3.8vw, 1.15rem);
+    .cabecalho-card h1 {
+      font-size: clamp(0.96rem, 3.8vw, 1.15rem);
       font-weight: 800;
-      line-height: 1.25;
       color: #071f18;
     }
 
-    .topo-limpo p {
+    .cabecalho-card p {
       font-size: clamp(0.72rem, 2.8vw, 0.8rem);
       color: #2e7d32;
       font-weight: 700;
       margin-top: 2px;
     }
 
+    .painel-barras {
+      background: rgba(255, 255, 255, 0.93);
+      color: #071f18;
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .barra-linha {
+      display: grid;
+      grid-template-columns: 88px 1fr 42px;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .barra-linha input[type="range"] {
+      width: 100%;
+      accent-color: #2e7d32;
+      cursor: pointer;
+    }
+
+    .barra-valor {
+      text-align: right;
+      color: #15803d;
+      font-weight: 800;
+    }
+
+    .rodape-ui {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
     .dica-toque {
-      position: relative;
-      z-index: 2;
-      align-self: center;
-      background: rgba(7, 31, 24, 0.82);
+      background: rgba(7, 31, 24, 0.84);
       color: #d1fae5;
       border: 1px solid rgba(167, 243, 208, 0.25);
       padding: 6px 14px;
       border-radius: 999px;
       font-size: clamp(0.72rem, 2.8vw, 0.8rem);
       font-weight: 600;
-      pointer-events: none;
     }
 
-    .etiqueta-selecionada {
-      position: fixed;
-      left: 50%;
-      bottom: clamp(14px, 3.5vw, 26px);
-      transform: translateX(-50%);
-      z-index: 10;
-      width: min(92vw, 420px);
-      background: rgba(255, 255, 255, 0.97);
+    .etiqueta-detalhes {
+      width: min(100%, 440px);
+      background: rgba(255, 255, 255, 0.98);
       color: #071f18;
       border-radius: 14px;
       border-top: 5px solid #2e7d32;
       padding: 14px 16px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
       display: none;
     }
 
-    .etiqueta-topo {
+    .etq-topo {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -101,29 +137,29 @@
       margin-bottom: 6px;
     }
 
-    .etiqueta-pos {
-      font-size: 0.75rem;
+    .etq-pos {
+      font-size: 0.72rem;
       font-weight: 800;
       color: #0f4033;
       text-transform: uppercase;
     }
 
-    .etiqueta-acoes {
+    .etq-dir {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .etiqueta-score {
+    .etq-score {
       background: #e8f5e9;
       color: #1b5e20;
       font-weight: 800;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       padding: 2px 8px;
       border-radius: 6px;
     }
 
-    .btn-fechar-etiqueta {
+    .btn-fechar {
       background: #e5e7eb;
       color: #111827;
       border: none;
@@ -133,27 +169,46 @@
       font-weight: 800;
       font-size: 0.8rem;
       cursor: pointer;
-      line-height: 1;
     }
 
-    .etiqueta-nome {
+    .etq-nome {
       font-size: clamp(0.98rem, 4vw, 1.12rem);
       font-weight: 800;
       color: #071f18;
       margin-bottom: 8px;
     }
 
-    .etiqueta-linhas {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: clamp(0.78rem, 3.1vw, 0.86rem);
-      color: #1f2937;
+    .etq-grade {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: clamp(0.75rem, 3vw, 0.82rem);
     }
 
-    .etiqueta-linha-destaque {
-      font-weight: 800;
+    .etq-campo-full {
+      grid-column: 1 / -1;
+    }
+
+    .etq-rotulo {
+      color: #64748b;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .etq-dado {
+      color: #071f18;
+      font-weight: 700;
+    }
+
+    .etq-dado-destaque {
       color: #15803d;
+      font-weight: 800;
     }
 
     .aviso-vazio {
@@ -177,26 +232,48 @@
 <body>
   <canvas id="canvas-3d"></canvas>
 
-  <div class="tela-3d">
-    <header class="topo-limpo">
-      <h1 id="titulo-grafico">Gráfico 3D</h1>
-      <p id="subtitulo-grafico">Toque em uma fatia para ver a análise da tabela</p>
-    </header>
+  <div class="camada-ui">
+    <div class="topo-painel">
+      <header class="cabecalho-card">
+        <h1 id="titulo-grafico">Gráfico 3D</h1>
+        <p id="subtitulo-grafico">Arraste para girar • Toque numa fatia para ver os detalhes</p>
+      </header>
 
-    <div id="dica-toque" class="dica-toque">Toque no gráfico 3D para abrir a etiqueta completa</div>
-  </div>
-
-  <aside id="etiqueta-selecionada" class="etiqueta-selecionada" aria-live="polite">
-    <div class="etiqueta-topo">
-      <span id="etq-pos" class="etiqueta-pos">#1</span>
-      <div class="etiqueta-acoes">
-        <span id="etq-score" class="etiqueta-score">0 pts</span>
-        <button type="button" class="btn-fechar-etiqueta" onclick="fecharEtiqueta()" aria-label="Fechar etiqueta">✕</button>
-      </div>
+      <section id="painel-barras" class="painel-barras" style="display:none;">
+        <div class="barra-linha">
+          <span>💰 Preço</span>
+          <input type="range" id="sl-preco" min="0" max="100" value="50" oninput="recalcularEAtualizar()">
+          <span class="barra-valor" id="lbl-preco">50%</span>
+        </div>
+        <div class="barra-linha">
+          <span>📍 Distância</span>
+          <input type="range" id="sl-dist" min="0" max="100" value="30" oninput="recalcularEAtualizar()">
+          <span class="barra-valor" id="lbl-dist">30%</span>
+        </div>
+        <div class="barra-linha" id="linha-avaliacao">
+          <span>⭐ Avaliação</span>
+          <input type="range" id="sl-aval" min="0" max="100" value="20" oninput="recalcularEAtualizar()">
+          <span class="barra-valor" id="lbl-aval">20%</span>
+        </div>
+      </section>
     </div>
-    <div id="etq-nome" class="etiqueta-nome"></div>
-    <div id="etq-linhas" class="etiqueta-linhas"></div>
-  </aside>
+
+    <div class="rodape-ui">
+      <div id="dica-toque" class="dica-toque">Toque no gráfico 3D para abrir a etiqueta da tabela</div>
+
+      <aside id="etiqueta-detalhes" class="etiqueta-detalhes" aria-live="polite">
+        <div class="etq-topo">
+          <span id="etq-pos" class="etq-pos">#1</span>
+          <div class="etq-dir">
+            <span id="etq-score" class="etq-score">0 pts</span>
+            <button type="button" class="btn-fechar" onclick="fecharEtiqueta()" aria-label="Fechar">✕</button>
+          </div>
+        </div>
+        <div id="etq-nome" class="etq-nome"></div>
+        <div id="etq-grade" class="etq-grade"></div>
+      </aside>
+    </div>
+  </div>
 
   <div id="aviso-vazio" class="aviso-vazio">
     Nenhum dado recebido pelo QR Code. Gere o QR Code na tela de Métricas.
@@ -206,8 +283,44 @@
     const CORES_3D = [0x1b5e20, 0x2e7d32, 0x43a047, 0x66bb6a, 0x0288d1, 0x00897b];
     const CORES_CSS = ['#1b5e20', '#2e7d32', '#43a047', '#66bb6a', '#0288d1', '#00897b'];
 
+    let dadosBase = null;
+    let itensAnalisadosAtuais = [];
     let itemAtivoIdx = null;
     let meshesFatia = [];
+    let scene, camera, renderer, grupoPizza;
+    let arrastando = false, moveuDuranteArraste = false;
+    let inicioX = 0, inicioY = 0, ultimoX = 0, ultimoY = 0;
+
+    function extrairNumeroMoeda(texto) {
+      if (typeof texto === 'number') return Number.isFinite(texto) ? texto : 0;
+      if (!texto) return 0;
+      const limpo = String(texto)
+        .replace(/[^\d,.-]/g, '')
+        .replace(/\.(?=\d{3}(?:[^\d]|$))/g, '')
+        .replace(',', '.');
+      const num = Number(limpo);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function extrairDistancia(item) {
+      if (item.distanciaKm !== '' && item.distanciaKm !== null && item.distanciaKm !== undefined) {
+        const n = Number(item.distanciaKm);
+        if (Number.isFinite(n)) return n;
+      }
+      const m = String(item.detalhe || '').match(/([\d.,]+)\s*km/i);
+      if (m) return extrairNumeroMoeda(m[1]);
+      return 0;
+    }
+
+    function extrairAvaliacao(item) {
+      if (item.avaliacao !== '' && item.avaliacao !== null && item.avaliacao !== undefined) {
+        const n = Number(item.avaliacao);
+        if (Number.isFinite(n)) return n;
+      }
+      const m = String(item.detalhe || '').match(/⭐\s*([\d.,]+)/);
+      if (m) return extrairNumeroMoeda(m[1]);
+      return 0;
+    }
 
     function lerDadosTabelaURL() {
       const params = new URLSearchParams(window.location.search);
@@ -220,10 +333,11 @@
         return {
           titulo: parsed.t || parsed.titulo || 'Ranking 3D',
           tipo: parsed.tp || parsed.tipo || 'industria',
+          pesos: parsed.w || null,
           itens: lista.map((it, idx) => ({
             pos: it.p ?? it.pos ?? (idx + 1),
             nome: it.n || it.nome || `Item ${idx + 1}`,
-            score: Number(it.s ?? it.score ?? 0),
+            scoreOriginal: Number(it.s ?? it.score ?? 0),
             valor: it.v || it.valorPrincipalFmt || '',
             detalhe: it.d || it.detalheExtra || '',
             distanciaKm: it.km ?? it.distanciaKm ?? '',
@@ -236,23 +350,54 @@
       }
     }
 
-    function analisarItensTabela(itensBrutos) {
-      const ordenados = [...itensBrutos].sort((a, b) => Number(b.score) - Number(a.score));
-      const somaScoresPositivos = ordenados.reduce(
-        (acc, it) => acc + Math.max(0, Number(it.score) || 0),
-        0
-      );
-      const baseProporcao = somaScoresPositivos > 0 ? somaScoresPositivos : ordenados.length;
+    function calcularItensComParametros(itens, tipo, pesos) {
+      if (!itens.length) return [];
 
-      return ordenados.map((item, idx) => {
-        const scoreNum = Number(item.score) || 0;
-        const pesoFatia = somaScoresPositivos > 0 ? Math.max(0, scoreNum) : 1;
-        const participacaoPct = ((pesoFatia / baseProporcao) * 100).toFixed(1);
+      const valoresNum = itens.map(extrairNumeroMoeda);
+      const distsNum = itens.map(extrairDistancia);
+      const avalsNum = itens.map(extrairAvaliacao);
+
+      const temVariacaoValor = new Set(valoresNum).size > 1;
+      const temVariacaoDist = new Set(distsNum).size > 1;
+      const temVariacaoAval = new Set(avalsNum).size > 1;
+
+      const minVal = Math.min(...valoresNum), maxVal = Math.max(...valoresNum);
+      const minDist = Math.min(...distsNum), maxDist = Math.max(...distsNum);
+      const minAval = Math.min(...avalsNum), maxAval = Math.max(...avalsNum);
+
+      const pPreco = Number(pesos.preco ?? 50);
+      const pDist = Number(pesos.distancia ?? 30);
+      const pAval = tipo === 'cooperativa' ? 0 : Number(pesos.avaliacao ?? 20);
+      const somaPesos = (pPreco + pDist + pAval) || 100;
+
+      const calculados = itens.map((item, i) => {
+        const sVal = maxVal === minVal ? 100 : ((maxVal - valoresNum[i]) / (maxVal - minVal)) * 100;
+        const sDist = maxDist === minDist ? 100 : ((maxDist - distsNum[i]) / (maxDist - minDist)) * 100;
+        const sAval = maxAval === minAval ? 100 : ((avalsNum[i] - minAval) / (maxAval - minAval)) * 100;
+
+        const podeRecalcular = temVariacaoValor || temVariacaoDist || temVariacaoAval;
+        const scoreCalculado = podeRecalcular
+          ? Number((((sVal * pPreco) + (sDist * pDist) + (sAval * pAval)) / somaPesos).toFixed(1))
+          : Number(item.scoreOriginal || 0);
 
         return {
           ...item,
-          posAnalise: idx + 1,
-          scoreNum,
+          scoreFinal: scoreCalculado,
+          distNum: distsNum[i],
+          avalNum: avalsNum[i]
+        };
+      });
+
+      const ordenados = calculados.sort((a, b) => b.scoreFinal - a.scoreFinal);
+      const somaScoresPositivos = ordenados.reduce((acc, it) => acc + Math.max(0, it.scoreFinal), 0);
+      const baseProporcao = somaScoresPositivos > 0 ? somaScoresPositivos : ordenados.length;
+
+      return ordenados.map((item, idx) => {
+        const pesoFatia = somaScoresPositivos > 0 ? Math.max(0, item.scoreFinal) : 1;
+        const participacaoPct = ((pesoFatia / baseProporcao) * 100).toFixed(1);
+        return {
+          ...item,
+          posTabela: idx + 1,
           pesoFatia,
           participacaoPct
         };
@@ -261,7 +406,7 @@
 
     function fecharEtiqueta() {
       itemAtivoIdx = null;
-      document.getElementById('etiqueta-selecionada').style.display = 'none';
+      document.getElementById('etiqueta-detalhes').style.display = 'none';
       document.getElementById('dica-toque').style.display = 'block';
       meshesFatia.forEach((m) => {
         m.position.x = m.userData.baseX;
@@ -272,38 +417,37 @@
     function mostrarEtiquetaItem(item, idx, tipo) {
       itemAtivoIdx = idx;
       const corCss = CORES_CSS[idx % CORES_CSS.length];
-      const box = document.getElementById('etiqueta-selecionada');
-      const linhasEl = document.getElementById('etq-linhas');
+      const box = document.getElementById('etiqueta-detalhes');
+      const grade = document.getElementById('etq-grade');
 
       box.style.borderTopColor = corCss;
       box.style.display = 'block';
       document.getElementById('dica-toque').style.display = 'none';
 
-      const posExibida = item.pos ?? item.posAnalise ?? (idx + 1);
       document.getElementById('etq-pos').innerText =
-        `Posição #${posExibida} • ${tipo === 'cooperativa' ? 'Cooperativa' : 'Fornecedor'}`;
-      document.getElementById('etq-score').innerText = `${item.scoreNum} pts (${item.participacaoPct}%)`;
+        `#${item.posTabela} • ${tipo === 'cooperativa' ? 'Cooperativa' : 'Fornecedor'}`;
+      document.getElementById('etq-score').innerText = `${item.scoreFinal} pts`;
       document.getElementById('etq-nome').innerText = item.nome;
 
-      const linhas = [
-        `<div>Participação no score: <strong>${item.participacaoPct}%</strong></div>`
+      const rotuloValor = tipo === 'cooperativa' ? 'Custo Total Estimado' : 'Orçamento / Valor';
+      const celulas = [
+        `<div><span class="etq-rotulo">Participação</span><span class="etq-dado">${item.participacaoPct}%</span></div>`,
+        `<div><span class="etq-rotulo">${rotuloValor}</span><span class="etq-dado-destaque">${item.valor || '—'}</span></div>`
       ];
 
-      if (item.valor) {
-        const rotuloValor = tipo === 'cooperativa' ? 'Custo Total Estimado' : 'Orçamento / Valor';
-        linhas.push(`<div class="etiqueta-linha-destaque">${rotuloValor}: ${item.valor}</div>`);
-      }
-      if (item.detalhe) {
-        linhas.push(`<div>${item.detalhe}</div>`);
-      }
-      if (item.distanciaKm !== '' && item.distanciaKm !== null && item.distanciaKm !== undefined) {
-        linhas.push(`<div>Distância: <strong>${item.distanciaKm} km</strong></div>`);
-      }
-      if (tipo !== 'cooperativa' && item.avaliacao !== '' && item.avaliacao !== null && item.avaliacao !== undefined) {
-        linhas.push(`<div>Avaliação: <strong>⭐ ${item.avaliacao}</strong></div>`);
+      if (item.distNum > 0 || item.distanciaKm !== '') {
+        celulas.push(`<div><span class="etq-rotulo">Distância</span><span class="etq-dado">${item.distNum || item.distanciaKm} km</span></div>`);
       }
 
-      linhasEl.innerHTML = linhas.join('');
+      if (tipo !== 'cooperativa' && (item.avalNum > 0 || item.avaliacao !== '')) {
+        celulas.push(`<div><span class="etq-rotulo">Avaliação</span><span class="etq-dado">⭐ ${item.avalNum || item.avaliacao}</span></div>`);
+      }
+
+      if (item.detalhe) {
+        celulas.push(`<div class="etq-campo-full"><span class="etq-rotulo">Detalhes da Tabela</span><span class="etq-dado">${item.detalhe}</span></div>`);
+      }
+
+      grade.innerHTML = celulas.join('');
 
       meshesFatia.forEach((m, mIdx) => {
         const destaque = mIdx === idx ? 0.24 : 0;
@@ -312,45 +456,16 @@
       });
     }
 
-    function iniciarGrafico3D(itensAnalisados, tipo) {
-      const canvas = document.getElementById('canvas-3d');
-      const scene = new THREE.Scene();
-
-      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-
-      function ajustarProporcaoTela() {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        const ehCelular = w < 640;
-
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-
-        if (ehCelular) {
-          camera.position.set(0, 5.1, 7.2);
-        } else {
-          camera.position.set(0, 4.2, 5.8);
-        }
-        camera.lookAt(0, -0.1, 0);
+    function reconstruirFatias3D(itensAnalisados, tipo) {
+      if (!grupoPizza) return;
+      while (grupoPizza.children.length > 0) {
+        grupoPizza.remove(grupoPizza.children[0]);
       }
-
-      ajustarProporcaoTela();
-
-      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
-      const luzDirecional = new THREE.DirectionalLight(0xffffff, 0.85);
-      luzDirecional.position.set(4, 7, 5);
-      scene.add(luzDirecional);
-
-      const grupoPizza = new THREE.Group();
-      scene.add(grupoPizza);
+      meshesFatia = [];
 
       const totalPeso = itensAnalisados.reduce((acc, it) => acc + it.pesoFatia, 0) || 1;
       let anguloAtual = 0;
-      const raio = 1.75;
-      meshesFatia = [];
+      const raio = 1.72;
 
       itensAnalisados.forEach((item, idx) => {
         const anguloFatia = (item.pesoFatia / totalPeso) * Math.PI * 2;
@@ -362,7 +477,7 @@
         forma.lineTo(0, 0);
 
         const geo = new THREE.ExtrudeGeometry(forma, {
-          depth: 0.58,
+          depth: 0.56,
           bevelEnabled: true,
           bevelSegments: 2,
           steps: 1,
@@ -392,15 +507,48 @@
         anguloAtual += anguloFatia;
       });
 
+      if (itemAtivoIdx !== null && itensAnalisados[itemAtivoIdx]) {
+        mostrarEtiquetaItem(itensAnalisados[itemAtivoIdx], itemAtivoIdx, tipo);
+      }
+    }
+
+    function ajustarProporcaoTela() {
+      if (!camera || !renderer) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const ehCelular = w < 640;
+
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+
+      if (ehCelular) {
+        camera.position.set(0, 5.4, 7.6);
+      } else {
+        camera.position.set(0, 4.3, 5.9);
+      }
+      camera.lookAt(0, -0.15, 0);
+    }
+
+    function iniciarCena3D() {
+      const canvas = document.getElementById('canvas-3d');
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      ajustarProporcaoTela();
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+      const luzDirecional = new THREE.DirectionalLight(0xffffff, 0.85);
+      luzDirecional.position.set(4, 7, 5);
+      scene.add(luzDirecional);
+
+      grupoPizza = new THREE.Group();
+      scene.add(grupoPizza);
+
       const raycaster = new THREE.Raycaster();
       const ponteiro = new THREE.Vector2();
-
-      let arrastando = false;
-      let moveuDuranteArraste = false;
-      let inicioX = 0;
-      let inicioY = 0;
-      let ultimoX = 0;
-      let ultimoY = 0;
 
       canvas.addEventListener('pointerdown', (e) => {
         arrastando = true;
@@ -437,7 +585,7 @@
 
           if (hits.length > 0) {
             const clicado = hits[0].object.userData;
-            mostrarEtiquetaItem(clicado.item, clicado.idx, tipo);
+            mostrarEtiquetaItem(clicado.item, clicado.idx, dadosBase.tipo);
           } else {
             fecharEtiqueta();
           }
@@ -456,20 +604,52 @@
       animar();
     }
 
+    function recalcularEAtualizar() {
+      if (!dadosBase) return;
+      const pPreco = Number(document.getElementById('sl-preco')?.value ?? 50);
+      const pDist = Number(document.getElementById('sl-dist')?.value ?? 30);
+      const pAval = Number(document.getElementById('sl-aval')?.value ?? 20);
+
+      document.getElementById('lbl-preco').innerText = `${pPreco}%`;
+      document.getElementById('lbl-dist').innerText = `${pDist}%`;
+      document.getElementById('lbl-aval').innerText = `${pAval}%`;
+
+      itensAnalisadosAtuais = calcularItensComParametros(
+        dadosBase.itens,
+        dadosBase.tipo,
+        { preco: pPreco, distancia: pDist, avaliacao: pAval }
+      );
+
+      reconstruirFatias3D(itensAnalisadosAtuais, dadosBase.tipo);
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
-      const dados = lerDadosTabelaURL();
-      if (!dados || !dados.itens.length) {
+      dadosBase = lerDadosTabelaURL();
+      if (!dadosBase || !dadosBase.itens.length) {
         document.getElementById('aviso-vazio').style.display = 'block';
         document.getElementById('dica-toque').style.display = 'none';
         return;
       }
 
-      const itensAnalisados = analisarItensTabela(dados.itens);
-      document.getElementById('titulo-grafico').innerText = dados.titulo;
+      const ehCoop = dadosBase.tipo === 'cooperativa';
+      document.getElementById('titulo-grafico').innerText = dadosBase.titulo;
       document.getElementById('subtitulo-grafico').innerText =
-        dados.tipo === 'cooperativa' ? 'Cooperativas • Análise da tabela' : 'Fornecedores • Análise da tabela';
+        ehCoop ? 'Cooperativas • Parâmetros da tabela' : 'Fornecedores • Parâmetros da tabela';
 
-      iniciarGrafico3D(itensAnalisados, dados.tipo);
+      const painelBarras = document.getElementById('painel-barras');
+      painelBarras.style.display = 'flex';
+      if (ehCoop) {
+        document.getElementById('linha-avaliacao').style.display = 'none';
+      }
+
+      if (dadosBase.pesos) {
+        if (dadosBase.pesos.p !== undefined) document.getElementById('sl-preco').value = dadosBase.pesos.p;
+        if (dadosBase.pesos.d !== undefined) document.getElementById('sl-dist').value = dadosBase.pesos.d;
+        if (dadosBase.pesos.a !== undefined) document.getElementById('sl-aval').value = dadosBase.pesos.a;
+      }
+
+      iniciarCena3D();
+      recalcularEAtualizar();
     });
   </script>
 </body>
