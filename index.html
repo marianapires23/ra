@@ -180,7 +180,7 @@
   <div class="tela-3d">
     <header class="topo-limpo">
       <h1 id="titulo-grafico">Gráfico 3D</h1>
-      <p id="subtitulo-grafico">Toque em uma fatia para ver os dados da tabela</p>
+      <p id="subtitulo-grafico">Toque em uma fatia para ver a análise da tabela</p>
     </header>
 
     <div id="dica-toque" class="dica-toque">Toque no gráfico 3D para abrir a etiqueta completa</div>
@@ -236,6 +236,29 @@
       }
     }
 
+    function analisarItensTabela(itensBrutos) {
+      const ordenados = [...itensBrutos].sort((a, b) => Number(b.score) - Number(a.score));
+      const somaScoresPositivos = ordenados.reduce(
+        (acc, it) => acc + Math.max(0, Number(it.score) || 0),
+        0
+      );
+      const baseProporcao = somaScoresPositivos > 0 ? somaScoresPositivos : ordenados.length;
+
+      return ordenados.map((item, idx) => {
+        const scoreNum = Number(item.score) || 0;
+        const pesoFatia = somaScoresPositivos > 0 ? Math.max(0, scoreNum) : 1;
+        const participacaoPct = ((pesoFatia / baseProporcao) * 100).toFixed(1);
+
+        return {
+          ...item,
+          posAnalise: idx + 1,
+          scoreNum,
+          pesoFatia,
+          participacaoPct
+        };
+      });
+    }
+
     function fecharEtiqueta() {
       itemAtivoIdx = null;
       document.getElementById('etiqueta-selecionada').style.display = 'none';
@@ -256,11 +279,16 @@
       box.style.display = 'block';
       document.getElementById('dica-toque').style.display = 'none';
 
-      document.getElementById('etq-pos').innerText = `Posição #${item.pos ?? (idx + 1)} • ${tipo === 'cooperativa' ? 'Cooperativa' : 'Fornecedor'}`;
-      document.getElementById('etq-score').innerText = `${item.score} pts`;
+      const posExibida = item.pos ?? item.posAnalise ?? (idx + 1);
+      document.getElementById('etq-pos').innerText =
+        `Posição #${posExibida} • ${tipo === 'cooperativa' ? 'Cooperativa' : 'Fornecedor'}`;
+      document.getElementById('etq-score').innerText = `${item.scoreNum} pts (${item.participacaoPct}%)`;
       document.getElementById('etq-nome').innerText = item.nome;
 
-      const linhas = [];
+      const linhas = [
+        `<div>Participação no score: <strong>${item.participacaoPct}%</strong></div>`
+      ];
+
       if (item.valor) {
         const rotuloValor = tipo === 'cooperativa' ? 'Custo Total Estimado' : 'Orçamento / Valor';
         linhas.push(`<div class="etiqueta-linha-destaque">${rotuloValor}: ${item.valor}</div>`);
@@ -275,16 +303,16 @@
         linhas.push(`<div>Avaliação: <strong>⭐ ${item.avaliacao}</strong></div>`);
       }
 
-      linhasEl.innerHTML = linhas.length ? linhas.join('') : `<div>Pontuação no ranking: <strong>${item.score} pts</strong></div>`;
+      linhasEl.innerHTML = linhas.join('');
 
       meshesFatia.forEach((m, mIdx) => {
         const destaque = mIdx === idx ? 0.24 : 0;
         m.position.x = m.userData.baseX + Math.cos(m.userData.anguloMeio) * destaque;
-        m.position.z = m.userData.baseZ + Math.sin(m.userData.anguloMeio) * destaque;
+        m.position.z = m.userData.baseZ - Math.sin(m.userData.anguloMeio) * destaque;
       });
     }
 
-    function iniciarGrafico3D(itens, tipo) {
+    function iniciarGrafico3D(itensAnalisados, tipo) {
       const canvas = document.getElementById('canvas-3d');
       const scene = new THREE.Scene();
 
@@ -319,14 +347,13 @@
       const grupoPizza = new THREE.Group();
       scene.add(grupoPizza);
 
-      const total = itens.reduce((acc, it) => acc + Math.max(Number(it.score) || 0, 0.1), 0);
+      const totalPeso = itensAnalisados.reduce((acc, it) => acc + it.pesoFatia, 0) || 1;
       let anguloAtual = 0;
       const raio = 1.75;
       meshesFatia = [];
 
-      itens.forEach((item, idx) => {
-        const valorPos = Math.max(Number(item.score) || 0, 0.1);
-        const anguloFatia = (valorPos / total) * Math.PI * 2;
+      itensAnalisados.forEach((item, idx) => {
+        const anguloFatia = (item.pesoFatia / totalPeso) * Math.PI * 2;
         const corHex = CORES_3D[idx % CORES_3D.length];
 
         const forma = new THREE.Shape();
@@ -353,7 +380,7 @@
         const fatiaMesh = new THREE.Mesh(geo, mat);
         const anguloMeio = anguloAtual + anguloFatia / 2;
         const baseX = Math.cos(anguloMeio) * 0.05;
-        const baseZ = Math.sin(anguloMeio) * 0.05;
+        const baseZ = -Math.sin(anguloMeio) * 0.05;
 
         fatiaMesh.position.x = baseX;
         fatiaMesh.position.z = baseZ;
@@ -437,12 +464,12 @@
         return;
       }
 
-      const ordenados = [...dados.itens].sort((a, b) => Number(b.score) - Number(a.score));
+      const itensAnalisados = analisarItensTabela(dados.itens);
       document.getElementById('titulo-grafico').innerText = dados.titulo;
       document.getElementById('subtitulo-grafico').innerText =
-        dados.tipo === 'cooperativa' ? 'Cooperativas • Conforme a tabela' : 'Fornecedores • Conforme a tabela';
+        dados.tipo === 'cooperativa' ? 'Cooperativas • Análise da tabela' : 'Fornecedores • Análise da tabela';
 
-      iniciarGrafico3D(ordenados, dados.tipo);
+      iniciarGrafico3D(itensAnalisados, dados.tipo);
     });
   </script>
 </body>
