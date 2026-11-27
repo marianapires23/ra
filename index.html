@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Circularis • Gráfico 3D em RA</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body {
+      background: #04120d;
+      color: #ffffff;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      touch-action: none;
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 20;
+      background: rgba(8, 28, 21, 0.94);
+      border-bottom: 1px solid rgba(101, 214, 155, 0.25);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-titulo {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #e6f7ee;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar-sub {
+      font-size: 0.72rem;
+      color: #65d69b;
+      font-weight: 700;
+    }
+
+    .cena-3d-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 40%, #144535 0%, #061812 65%, #030c09 100%);
+    }
+
+    #camera-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      display: none;
+      opacity: 0.35;
+    }
+
+    #three-canvas {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    #three-canvas:active {
+      cursor: grabbing;
+    }
+
+    .etiquetas-3d-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .tag-3d {
+      position: absolute;
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.96);
+      color: #071f18;
+      border-left: 4px solid #16a34a;
+      border-radius: 8px;
+      padding: 6px 9px;
+      min-width: 125px;
+      max-width: 175px;
+      font-size: 0.68rem;
+      line-height: 1.25;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .tag-3d.ativa {
+      border-left-color: #0288d1;
+      transform: translate(-50%, -50%) scale(1.08);
+      z-index: 10;
+    }
+
+    .tag-3d-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      font-weight: 800;
+      font-size: 0.7rem;
+    }
+
+    .tag-3d-pts {
+      background: #dcfce7;
+      color: #14532d;
+      padding: 1px 5px;
+      border-radius: 999px;
+      font-size: 0.62rem;
+      white-space: nowrap;
+    }
+
+    .tag-3d-val {
+      color: #065f46;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .tag-3d-extra {
+      color: #334155;
+      margin-top: 3px;
+      padding-top: 3px;
+      border-top: 1px dashed #cbd5e1;
+      font-size: 0.62rem;
+      display: none;
+    }
+
+    .tag-3d.ativa .tag-3d-extra {
+      display: block;
+    }
+
+    .controles-rodape {
+      position: relative;
+      z-index: 20;
+      background: rgba(8, 28, 21, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 9px 12px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-ctrl {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-ctrl:active {
+      background: rgba(101, 214, 155, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div style="min-width:0;">
+      <div class="topbar-titulo" id="ra-titulo">Gráfico 3D em Realidade Aumentada</div>
+      <div class="topbar-sub">Arraste para girar em 3D • Toque nas etiquetas para ver detalhes</div>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button class="btn-ctrl" id="btn-cam" onclick="alternarCamera3D()">
+        <i class="fa-solid fa-camera"></i> Câmera
+      </button>
+      <button class="btn-ctrl" onclick="alternarTodosDetalhes3D()">
+        <i class="fa-solid fa-tag"></i> Detalhes
+      </button>
+    </div>
+  </header>
+
+  <main class="cena-3d-container" id="cena-3d-container">
+    <video id="camera-bg" autoplay playsinline muted></video>
+    <canvas id="three-canvas"></canvas>
+    <div class="etiquetas-3d-layer" id="etiquetas-3d-layer"></div>
+  </main>
+
+  <footer class="controles-rodape">
+    <button class="btn-ctrl" onclick="ajustarZoom3D(-1.2)"><i class="fa-solid fa-magnifying-glass-plus"></i> Zoom +</button>
+    <button class="btn-ctrl" onclick="ajustarZoom3D(1.2)"><i class="fa-solid fa-magnifying-glass-minus"></i> Zoom -</button>
+    <button class="btn-ctrl" onclick="alternarAutoGiro3D()"><i class="fa-solid fa-arrows-spin"></i> <span id="lbl-giro">Auto-Giro</span></button>
+    <button class="btn-ctrl" onclick="resetarCamera3D()"><i class="fa-solid fa-rotate-left"></i> Resetar</button>
+  </footer>
+
+  <script>
+    let scene, camera, renderer, grupoGrafico3D;
+    let fatiasMeshes = [];
+    let itensDados3D = [];
+    let indiceDestaque3D = 0;
+    let autoGiro3D = false;
+    let expandidoGlobal3D = false;
+    let cameraAtiva3D = false;
+    let stream3D = null;
+
+    let arrastando3D = false;
+    let ultimoX = 0, ultimoY = 0;
+
+    function decodificarDadosURL() {
+      const params = new URLSearchParams(window.location.search);
+      const b64 = params.get('dados');
+      if (!b64) {
+        return {
+          titulo: 'Indicadores — Exemplo 3D',
+          itens: [
+            { pos: 1, nome: 'COOPERZAGATI', score: 100, cor: '#1b5e20', valorPrincipalFmt: 'R$ 1.200,00', detalheExtra: 'Economia: R$ 300,00', distanciaKm: 9.6 },
+            { pos: 2, nome: 'ECOVALE', score: 90, cor: '#2e7d32', valorPrincipalFmt: 'R$ 1.350,00', detalheExtra: 'Economia: R$ 150,00', distanciaKm: 14.2 },
+            { pos: 3, nome: 'RECICLA SUL', score: 80, cor: '#52a368', valorPrincipalFmt: 'R$ 1.480,00', detalheExtra: 'Economia: R$ 20,00', distanciaKm: 18.0 }
+          ]
+        };
+      }
+      try {
+        const normal = b64.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = normal.length % 4 ? normal + '='.repeat(4 - (normal.length % 4)) : normal;
+        const bin = atob(pad);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return JSON.parse(new TextDecoder().decode(bytes));
+      } catch (e) {
+        return { titulo: 'Erro ao ler dados', itens: [] };
+      }
+    }
+
+    function iniciarCenaThreeJS(payload) {
+      document.getElementById('ra-titulo').innerText = (payload.titulo || 'Gráfico 3D') + ' • 3D';
+      itensDados3D = Array.isArray(payload.itens) && payload.itens.length > 0 ? payload.itens : [];
+
+      const container = document.getElementById('cena-3d-container');
+      const canvas = document.getElementById('three-canvas');
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || (window.innerHeight - 100);
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+      camera.position.set(0, 4.2, 6.8);
+      camera.lookAt(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.75);
+      scene.add(luzAmbiente);
+
+      const luzDirecional = new THREE.DirectionalLight(0xffffff, 0.9);
+      luzDirecional.position.set(5, 9, 6);
+      scene.add(luzDirecional);
+
+      const luzVerde = new THREE.PointLight(0x65d69b, 0.7, 20);
+      luzVerde.position.set(-4, 3, 4);
+      scene.add(luzVerde);
+
+      grupoGrafico3D = new THREE.Group();
+      grupoGrafico3D.rotation.x = 0.35;
+      scene.add(grupoGrafico3D);
+
+      const totalScore = itensDados3D.reduce((acc, it) => acc + (Number(it.score) || 100), 0) || 100;
+      let anguloAtual = 0;
+      const raio = 2.1;
+      const alturaFatia = 0.75;
+      fatiasMeshes = [];
+
+      const coresPadrao = [0x1b5e20, 0x2e7d32, 0x43a047, 0x0288d1, 0x00897b, 0xf59e0b];
+
+      itensDados3D.forEach((item, idx) => {
+        const valor = Number(item.score) || 100;
+        const arco = (valor / totalScore) * Math.PI * 2;
+
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.absarc(0, 0, raio, anguloAtual, anguloAtual + arco, false);
+        shape.lineTo(0, 0);
+
+        const extrudeSettings = {
+          depth: alturaFatia,
+          bevelEnabled: true,
+          bevelSegments: 3,
+          steps: 1,
+          bevelSize: 0.04,
+          bevelThickness: 0.04
+        };
+
+        const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        geom.rotateX(-Math.PI / 2);
+
+        let corHex = coresPadrao[idx % coresPadrao.length];
+        if (typeof item.cor === 'string' && item.cor.startsWith('#') && item.cor.length >= 7) {
+          corHex = parseInt(item.cor.slice(1, 7), 16);
+        }
+
+        const mat = new THREE.MeshStandardMaterial({
+          color: corHex,
+          roughness: 0.35,
+          metalness: 0.15
+        });
+
+        const mesh = new THREE.Mesh(geom, mat);
+        const anguloMeio = anguloAtual + arco / 2;
+        mesh.userData = {
+          index: idx,
+          anguloMeio,
+          raioAncora: raio * 0.72,
+          alturaAncora: alturaFatia + 0.25
+        };
+
+        grupoGrafico3D.add(mesh);
+        fatiasMeshes.push(mesh);
+        anguloAtual += arco;
+      });
+
+      criarEtiquetas3D();
+      destacarItem3D(0);
+      configurarInteracao3D(canvas);
+
+      window.addEventListener('resize', () => {
+        const nw = container.clientWidth || window.innerWidth;
+        const nh = container.clientHeight || (window.innerHeight - 100);
+        camera.aspect = nw / nh;
+        camera.updateProjectionMatrix();
+        renderer.setSize(nw, nh);
+      });
+
+      animar3D();
+    }
+
+    function criarEtiquetas3D() {
+      const layer = document.getElementById('etiquetas-3d-layer');
+      layer.innerHTML = '';
+
+      itensDados3D.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'tag-3d';
+        div.id = `tag-3d-${idx}`;
+        div.innerHTML = `
+          <div class="tag-3d-topo">
+            <span>#${item.pos} ${item.nome}</span>
+            <span class="tag-3d-pts">${item.score} pts</span>
+          </div>
+          <div class="tag-3d-val">${item.valorPrincipalFmt}</div>
+          <div class="tag-3d-extra" style="display:${expandidoGlobal3D ? 'block' : 'none'};">
+            ${item.detalheExtra || ''} • ${item.distanciaKm} km
+          </div>
+        `;
+        div.onclick = () => destacarItem3D(idx);
+        layer.appendChild(div);
+      });
+    }
+
+    function destacarItem3D(idx) {
+      indiceDestaque3D = idx;
+      fatiasMeshes.forEach((m, i) => {
+        const ativa = i === idx;
+        const ang = m.userData.anguloMeio;
+        const desloc = ativa ? 0.28 : 0;
+        m.position.x = Math.cos(ang) * desloc;
+        m.position.z = Math.sin(ang) * desloc;
+        m.position.y = ativa ? 0.22 : 0;
+      });
+
+      document.querySelectorAll('.tag-3d').forEach((el, i) => {
+        el.classList.toggle('ativa', i === idx);
+        const extra = el.querySelector('.tag-3d-extra');
+        if (extra) {
+          extra.style.display = (expandidoGlobal3D || i === idx) ? 'block' : 'none';
+        }
+      });
+    }
+
+    function atualizarPosicaoEtiquetas3D() {
+      const container = document.getElementById('cena-3d-container');
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || (window.innerHeight - 100);
+
+      fatiasMeshes.forEach((mesh, idx) => {
+        const tagEl = document.getElementById(`tag-3d-${idx}`);
+        if (!tagEl) return;
+
+        const { anguloMeio, raioAncora, alturaAncora } = mesh.userData;
+        const localPos = new THREE.Vector3(
+          Math.cos(anguloMeio) * raioAncora + mesh.position.x,
+          alturaAncora + mesh.position.y,
+          Math.sin(anguloMeio) * raioAncora + mesh.position.z
+        );
+
+        const worldPos = localPos.applyMatrix4(grupoGrafico3D.matrixWorld);
+        const proj = worldPos.project(camera);
+
+        const x = (proj.x * 0.5 + 0.5) * w;
+        const y = (-proj.y * 0.5 + 0.5) * h;
+
+        tagEl.style.left = `${x}px`;
+        tagEl.style.top = `${y}px`;
+      });
+    }
+
+    function configurarInteracao3D(canvas) {
+      canvas.addEventListener('pointerdown', (e) => {
+        arrastando3D = true;
+        ultimoX = e.clientX;
+        ultimoY = e.clientY;
+        canvas.setPointerCapture(e.pointerId);
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (!arrastando3D || !grupoGrafico3D) return;
+        const dx = e.clientX - ultimoX;
+        const dy = e.clientY - ultimoY;
+        ultimoX = e.clientX;
+        ultimoY = e.clientY;
+
+        grupoGrafico3D.rotation.y += dx * 0.01;
+        grupoGrafico3D.rotation.x = Math.max(-0.3, Math.min(1.15, grupoGrafico3D.rotation.x + dy * 0.008));
+      });
+
+      const parar = () => { arrastando3D = false; };
+      canvas.addEventListener('pointerup', parar);
+      canvas.addEventListener('pointercancel', parar);
+    }
+
+    function ajustarZoom3D(delta) {
+      if (!camera) return;
+      camera.position.z = Math.max(3.6, Math.min(12, camera.position.z + delta));
+      camera.position.y = Math.max(2.2, Math.min(8, camera.position.y + delta * 0.5));
+      camera.lookAt(0, 0, 0);
+    }
+
+    function alternarAutoGiro3D() {
+      autoGiro3D = !autoGiro3D;
+      document.getElementById('lbl-giro').innerText = autoGiro3D ? 'Parar Giro' : 'Auto-Giro';
+    }
+
+    function resetarCamera3D() {
+      if (!camera || !grupoGrafico3D) return;
+      grupoGrafico3D.rotation.set(0.35, 0, 0);
+      camera.position.set(0, 4.2, 6.8);
+      camera.lookAt(0, 0, 0);
+    }
+
+    function alternarTodosDetalhes3D() {
+      expandidoGlobal3D = !expandidoGlobal3D;
+      document.querySelectorAll('.tag-3d').forEach((el, i) => {
+        const extra = el.querySelector('.tag-3d-extra');
+        if (extra) {
+          extra.style.display = (expandidoGlobal3D || i === indiceDestaque3D) ? 'block' : 'none';
+        }
+      });
+    }
+
+    async function alternarCamera3D() {
+      const video = document.getElementById('camera-bg');
+      const btn = document.getElementById('btn-cam');
+      if (cameraAtiva3D) {
+        if (stream3D) stream3D.getTracks().forEach(t => t.stop());
+        stream3D = null;
+        cameraAtiva3D = false;
+        video.style.display = 'none';
+        btn.innerHTML = '<i class="fa-solid fa-camera"></i> Câmera';
+        return;
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+      try {
+        stream3D = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+        video.srcObject = stream3D;
+        video.style.display = 'block';
+        cameraAtiva3D = true;
+        btn.innerHTML = '<i class="fa-solid fa-layer-group"></i> Fundo 3D';
+      } catch (_) {}
+    }
+
+    function animar3D() {
+      requestAnimationFrame(animar3D);
+      if (autoGiro3D && grupoGrafico3D && !arrastando3D) {
+        grupoGrafico3D.rotation.y += 0.008;
+      }
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+        atualizarPosicaoEtiquetas3D();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const payload = decodificarDadosURL();
+      iniciarCenaThreeJS(payload);
+    });
+  </script>
+</body>
+</html>
