@@ -34,11 +34,7 @@
       display: block;
       z-index: 1;
       touch-action: none;
-      cursor: grab;
-    }
-
-    #canvas-3d:active {
-      cursor: grabbing;
+      cursor: pointer;
     }
 
     .topo-limpo {
@@ -67,61 +63,97 @@
       margin-top: 2px;
     }
 
-    .faixa-etiquetas {
+    .dica-toque {
       position: relative;
       z-index: 2;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: thin;
-      -webkit-overflow-scrolling: touch;
+      align-self: center;
+      background: rgba(7, 31, 24, 0.82);
+      color: #d1fae5;
+      border: 1px solid rgba(167, 243, 208, 0.25);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: clamp(0.72rem, 2.8vw, 0.8rem);
+      font-weight: 600;
+      pointer-events: none;
     }
 
-    .etiqueta-item {
-      flex: 0 0 auto;
-      width: clamp(165px, 44vw, 210px);
-      background: rgba(255, 255, 255, 0.95);
+    .etiqueta-selecionada {
+      position: fixed;
+      left: 50%;
+      bottom: clamp(14px, 3.5vw, 26px);
+      transform: translateX(-50%);
+      z-index: 10;
+      width: min(92vw, 420px);
+      background: rgba(255, 255, 255, 0.97);
       color: #071f18;
-      border-radius: 10px;
-      padding: 9px 11px;
-      border-left: 4px solid #2e7d32;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+      border-radius: 14px;
+      border-top: 5px solid #2e7d32;
+      padding: 14px 16px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+      display: none;
     }
 
-    .etiqueta-cabecalho {
+    .etiqueta-topo {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #0f4033;
-      margin-bottom: 2px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
 
-    .etiqueta-pts {
+    .etiqueta-pos {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #0f4033;
+      text-transform: uppercase;
+    }
+
+    .etiqueta-acoes {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .etiqueta-score {
       background: #e8f5e9;
       color: #1b5e20;
-      padding: 1px 6px;
-      border-radius: 5px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .btn-fechar-etiqueta {
+      background: #e5e7eb;
+      color: #111827;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      cursor: pointer;
+      line-height: 1;
     }
 
     .etiqueta-nome {
-      font-size: clamp(0.8rem, 3.2vw, 0.88rem);
+      font-size: clamp(0.98rem, 4vw, 1.12rem);
       font-weight: 800;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      color: #071f18;
+      margin-bottom: 8px;
     }
 
-    .etiqueta-sub {
-      font-size: 0.7rem;
-      color: #374151;
-      font-weight: 600;
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .etiqueta-linhas {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: clamp(0.78rem, 3.1vw, 0.86rem);
+      color: #1f2937;
+    }
+
+    .etiqueta-linha-destaque {
+      font-weight: 800;
+      color: #15803d;
     }
 
     .aviso-vazio {
@@ -148,11 +180,23 @@
   <div class="tela-3d">
     <header class="topo-limpo">
       <h1 id="titulo-grafico">Gráfico 3D</h1>
-      <p id="subtitulo-grafico">Arraste para girar • Dados da tabela</p>
+      <p id="subtitulo-grafico">Toque em uma fatia para ver os dados da tabela</p>
     </header>
 
-    <section id="faixa-etiquetas" class="faixa-etiquetas"></section>
+    <div id="dica-toque" class="dica-toque">Toque no gráfico 3D para abrir a etiqueta completa</div>
   </div>
+
+  <aside id="etiqueta-selecionada" class="etiqueta-selecionada" aria-live="polite">
+    <div class="etiqueta-topo">
+      <span id="etq-pos" class="etiqueta-pos">#1</span>
+      <div class="etiqueta-acoes">
+        <span id="etq-score" class="etiqueta-score">0 pts</span>
+        <button type="button" class="btn-fechar-etiqueta" onclick="fecharEtiqueta()" aria-label="Fechar etiqueta">✕</button>
+      </div>
+    </div>
+    <div id="etq-nome" class="etiqueta-nome"></div>
+    <div id="etq-linhas" class="etiqueta-linhas"></div>
+  </aside>
 
   <div id="aviso-vazio" class="aviso-vazio">
     Nenhum dado recebido pelo QR Code. Gere o QR Code na tela de Métricas.
@@ -160,7 +204,10 @@
 
   <script>
     const CORES_3D = [0x1b5e20, 0x2e7d32, 0x43a047, 0x66bb6a, 0x0288d1, 0x00897b];
-    const CORES_BORDA = ['#1b5e20', '#2e7d32', '#43a047', '#66bb6a', '#0288d1', '#00897b'];
+    const CORES_CSS = ['#1b5e20', '#2e7d32', '#43a047', '#66bb6a', '#0288d1', '#00897b'];
+
+    let itemAtivoIdx = null;
+    let meshesFatia = [];
 
     function lerDadosTabelaURL() {
       const params = new URLSearchParams(window.location.search);
@@ -178,7 +225,9 @@
             nome: it.n || it.nome || `Item ${idx + 1}`,
             score: Number(it.s ?? it.score ?? 0),
             valor: it.v || it.valorPrincipalFmt || '',
-            detalhe: it.d || it.detalheExtra || ''
+            detalhe: it.d || it.detalheExtra || '',
+            distanciaKm: it.km ?? it.distanciaKm ?? '',
+            avaliacao: it.av ?? it.avaliacao ?? ''
           }))
         };
       } catch (e) {
@@ -187,54 +236,55 @@
       }
     }
 
-    function criarSpriteEtiqueta(linha1, linha2, corBorda) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 440;
-      canvas.height = 132;
-      const ctx = canvas.getContext('2d');
-
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
-      ctx.beginPath();
-      ctx.roundRect(8, 8, 424, 116, 18);
-      ctx.fill();
-
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = corBorda;
-      ctx.stroke();
-
-      ctx.fillStyle = '#071f18';
-      ctx.font = 'bold 28px Arial';
-      ctx.fillText(linha1.slice(0, 20), 22, 52);
-
-      ctx.fillStyle = '#1b5e20';
-      ctx.font = 'bold 23px Arial';
-      ctx.fillText(linha2.slice(0, 24), 22, 94);
-
-      const textura = new THREE.CanvasTexture(canvas);
-      const material = new THREE.SpriteMaterial({ map: textura, transparent: true });
-      const sprite = new THREE.Sprite(material);
-      return sprite;
+    function fecharEtiqueta() {
+      itemAtivoIdx = null;
+      document.getElementById('etiqueta-selecionada').style.display = 'none';
+      document.getElementById('dica-toque').style.display = 'block';
+      meshesFatia.forEach((m) => {
+        m.position.x = m.userData.baseX;
+        m.position.z = m.userData.baseZ;
+      });
     }
 
-    function renderizarEtiquetasInferiores(itens) {
-      const container = document.getElementById('faixa-etiquetas');
-      container.innerHTML = itens.map((item, idx) => {
-        const cor = CORES_BORDA[idx % CORES_BORDA.length];
-        const sub = item.valor || item.detalhe || `${item.score} pontos`;
-        return `
-          <div class="etiqueta-item" style="border-left-color:${cor};">
-            <div class="etiqueta-cabecalho">
-              <span>#${item.pos ?? (idx + 1)}</span>
-              <span class="etiqueta-pts">${item.score} pts</span>
-            </div>
-            <div class="etiqueta-nome">${item.nome}</div>
-            <div class="etiqueta-sub">${sub}</div>
-          </div>
-        `;
-      }).join('');
+    function mostrarEtiquetaItem(item, idx, tipo) {
+      itemAtivoIdx = idx;
+      const corCss = CORES_CSS[idx % CORES_CSS.length];
+      const box = document.getElementById('etiqueta-selecionada');
+      const linhasEl = document.getElementById('etq-linhas');
+
+      box.style.borderTopColor = corCss;
+      box.style.display = 'block';
+      document.getElementById('dica-toque').style.display = 'none';
+
+      document.getElementById('etq-pos').innerText = `Posição #${item.pos ?? (idx + 1)} • ${tipo === 'cooperativa' ? 'Cooperativa' : 'Fornecedor'}`;
+      document.getElementById('etq-score').innerText = `${item.score} pts`;
+      document.getElementById('etq-nome').innerText = item.nome;
+
+      const linhas = [];
+      if (item.valor) {
+        const rotuloValor = tipo === 'cooperativa' ? 'Custo Total Estimado' : 'Orçamento / Valor';
+        linhas.push(`<div class="etiqueta-linha-destaque">${rotuloValor}: ${item.valor}</div>`);
+      }
+      if (item.detalhe) {
+        linhas.push(`<div>${item.detalhe}</div>`);
+      }
+      if (item.distanciaKm !== '' && item.distanciaKm !== null && item.distanciaKm !== undefined) {
+        linhas.push(`<div>Distância: <strong>${item.distanciaKm} km</strong></div>`);
+      }
+      if (tipo !== 'cooperativa' && item.avaliacao !== '' && item.avaliacao !== null && item.avaliacao !== undefined) {
+        linhas.push(`<div>Avaliação: <strong>⭐ ${item.avaliacao}</strong></div>`);
+      }
+
+      linhasEl.innerHTML = linhas.length ? linhas.join('') : `<div>Pontuação no ranking: <strong>${item.score} pts</strong></div>`;
+
+      meshesFatia.forEach((m, mIdx) => {
+        const destaque = mIdx === idx ? 0.24 : 0;
+        m.position.x = m.userData.baseX + Math.cos(m.userData.anguloMeio) * destaque;
+        m.position.z = m.userData.baseZ + Math.sin(m.userData.anguloMeio) * destaque;
+      });
     }
 
-    function iniciarGrafico3D(itens) {
+    function iniciarGrafico3D(itens, tipo) {
       const canvas = document.getElementById('canvas-3d');
       const scene = new THREE.Scene();
 
@@ -252,7 +302,7 @@
         renderer.setSize(w, h);
 
         if (ehCelular) {
-          camera.position.set(0, 5.2, 7.6);
+          camera.position.set(0, 5.1, 7.2);
         } else {
           camera.position.set(0, 4.2, 5.8);
         }
@@ -271,14 +321,13 @@
 
       const total = itens.reduce((acc, it) => acc + Math.max(Number(it.score) || 0, 0.1), 0);
       let anguloAtual = 0;
-      const raio = 1.65;
-      const sprites = [];
+      const raio = 1.75;
+      meshesFatia = [];
 
       itens.forEach((item, idx) => {
         const valorPos = Math.max(Number(item.score) || 0, 0.1);
         const anguloFatia = (valorPos / total) * Math.PI * 2;
         const corHex = CORES_3D[idx % CORES_3D.length];
-        const corBorda = CORES_BORDA[idx % CORES_BORDA.length];
 
         const forma = new THREE.Shape();
         forma.moveTo(0, 0);
@@ -286,7 +335,7 @@
         forma.lineTo(0, 0);
 
         const geo = new THREE.ExtrudeGeometry(forma, {
-          depth: 0.55,
+          depth: 0.58,
           bevelEnabled: true,
           bevelSegments: 2,
           steps: 1,
@@ -303,62 +352,76 @@
 
         const fatiaMesh = new THREE.Mesh(geo, mat);
         const anguloMeio = anguloAtual + anguloFatia / 2;
-        const afastamento = idx === 0 ? 0.16 : 0.05;
-        fatiaMesh.position.x = Math.cos(anguloMeio) * afastamento;
-        fatiaMesh.position.z = Math.sin(anguloMeio) * afastamento;
-        grupoPizza.add(fatiaMesh);
+        const baseX = Math.cos(anguloMeio) * 0.05;
+        const baseZ = Math.sin(anguloMeio) * 0.05;
 
-        const sprite = criarSpriteEtiqueta(
-          `#${item.pos ?? (idx + 1)} ${item.nome}`,
-          `${item.score} pts${item.valor ? ' • ' + item.valor : ''}`,
-          corBorda
-        );
-        const ehCelular = window.innerWidth < 640;
-        sprite.scale.set(ehCelular ? 2.15 : 2.35, ehCelular ? 0.65 : 0.7, 1);
-        sprite.position.set(
-          Math.cos(anguloMeio) * (raio + 0.85),
-          0.9 + (idx % 2) * 0.25,
-          Math.sin(anguloMeio) * (raio + 0.85)
-        );
-        grupoPizza.add(sprite);
-        sprites.push(sprite);
+        fatiaMesh.position.x = baseX;
+        fatiaMesh.position.z = baseZ;
+        fatiaMesh.userData = { item, idx, baseX, baseZ, anguloMeio };
+
+        grupoPizza.add(fatiaMesh);
+        meshesFatia.push(fatiaMesh);
 
         anguloAtual += anguloFatia;
       });
 
+      const raycaster = new THREE.Raycaster();
+      const ponteiro = new THREE.Vector2();
+
       let arrastando = false;
+      let moveuDuranteArraste = false;
+      let inicioX = 0;
+      let inicioY = 0;
       let ultimoX = 0;
       let ultimoY = 0;
 
       canvas.addEventListener('pointerdown', (e) => {
         arrastando = true;
-        ultimoX = e.clientX;
-        ultimoY = e.clientY;
-      });
-
-      window.addEventListener('pointerup', () => {
-        arrastando = false;
+        moveuDuranteArraste = false;
+        inicioX = ultimoX = e.clientX;
+        inicioY = ultimoY = e.clientY;
       });
 
       window.addEventListener('pointermove', (e) => {
         if (!arrastando) return;
-        grupoPizza.rotation.y += (e.clientX - ultimoX) * 0.01;
-        grupoPizza.rotation.x = Math.max(-0.45, Math.min(0.55, grupoPizza.rotation.x + (e.clientY - ultimoY) * 0.008));
+        const dx = e.clientX - ultimoX;
+        const dy = e.clientY - ultimoY;
+        if (Math.hypot(e.clientX - inicioX, e.clientY - inicioY) > 6) {
+          moveuDuranteArraste = true;
+        }
         ultimoX = e.clientX;
         ultimoY = e.clientY;
+
+        grupoPizza.rotation.y += dx * 0.01;
+        grupoPizza.rotation.x = Math.max(-0.45, Math.min(0.55, grupoPizza.rotation.x + dy * 0.008));
       });
 
-      window.addEventListener('resize', () => {
-        ajustarProporcaoTela();
-        const ehCelular = window.innerWidth < 640;
-        sprites.forEach((sp) => {
-          sp.scale.set(ehCelular ? 2.15 : 2.35, ehCelular ? 0.65 : 0.7, 1);
-        });
+      window.addEventListener('pointerup', (e) => {
+        if (!arrastando) return;
+        arrastando = false;
+
+        if (!moveuDuranteArraste) {
+          const rect = canvas.getBoundingClientRect();
+          ponteiro.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          ponteiro.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+          raycaster.setFromCamera(ponteiro, camera);
+          const hits = raycaster.intersectObjects(meshesFatia, false);
+
+          if (hits.length > 0) {
+            const clicado = hits[0].object.userData;
+            mostrarEtiquetaItem(clicado.item, clicado.idx, tipo);
+          } else {
+            fecharEtiqueta();
+          }
+        }
       });
+
+      window.addEventListener('resize', ajustarProporcaoTela);
 
       function animar() {
         requestAnimationFrame(animar);
-        if (!arrastando) {
+        if (!arrastando && itemAtivoIdx === null) {
           grupoPizza.rotation.y += 0.005;
         }
         renderer.render(scene, camera);
@@ -370,6 +433,7 @@
       const dados = lerDadosTabelaURL();
       if (!dados || !dados.itens.length) {
         document.getElementById('aviso-vazio').style.display = 'block';
+        document.getElementById('dica-toque').style.display = 'none';
         return;
       }
 
@@ -378,8 +442,7 @@
       document.getElementById('subtitulo-grafico').innerText =
         dados.tipo === 'cooperativa' ? 'Cooperativas • Conforme a tabela' : 'Fornecedores • Conforme a tabela';
 
-      iniciarGrafico3D(ordenados);
-      renderizarEtiquetasInferiores(ordenados);
+      iniciarGrafico3D(ordenados, dados.tipo);
     });
   </script>
 </body>
