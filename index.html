@@ -3,37 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Circularis • Gráfico do Ranking</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Circularis • Gráfico 3D do Ranking</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body {
       min-height: 100vh;
       background: #0b2920;
       color: #ffffff;
-      padding: 24px 16px 48px;
+      padding: 20px 14px 48px;
       display: flex;
       justify-content: center;
     }
     .container {
       width: 100%;
-      max-width: 720px;
+      max-width: 780px;
     }
     .header-card {
       background: #b6d8bd;
       color: #071f18;
       border-radius: 14px;
-      padding: 20px 22px;
-      margin-bottom: 18px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.22);
     }
     .header-card h1 {
-      font-size: 1.45rem;
+      font-size: 1.4rem;
       font-weight: 800;
       margin-bottom: 4px;
     }
     .header-card p {
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       color: #1e4537;
       font-weight: 600;
     }
@@ -41,65 +41,102 @@
       background: #ffffff;
       color: #071f18;
       border-radius: 14px;
-      padding: 22px;
-      margin-bottom: 18px;
+      padding: 20px;
+      margin-bottom: 16px;
       box-shadow: 0 10px 26px rgba(0,0,0,0.25);
     }
     .card h2 {
       font-size: 1.05rem;
       font-weight: 800;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       color: #0b5134;
     }
-    .chart-box {
-      width: 280px;
-      height: 280px;
-      max-width: 100%;
-      margin: 0 auto;
+    .scene-wrapper {
       position: relative;
+      width: 100%;
+      height: 360px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #143d2f 0%, #071f18 100%);
+      border: 1px solid #c9dfce;
+      touch-action: none;
+      cursor: grab;
     }
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .scene-wrapper:active {
+      cursor: grabbing;
     }
-    .item-row {
+    .scene-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(7, 31, 24, 0.75);
+      color: #d1fae5;
+      font-size: 0.74rem;
+      padding: 5px 12px;
+      border-radius: 999px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .labels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .etiqueta-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 6px solid #2e7d32;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .etiqueta-card.lider {
+      background: #f0fdf4;
+      border-color: #86efac;
+      border-left-width: 7px;
+    }
+    .etiqueta-topo {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
+      gap: 8px;
+      margin-bottom: 4px;
     }
-    .item-row.lider {
-      background: #f0fdf4;
-      border-color: #86efac;
-    }
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .item-nome {
+    .etiqueta-pos {
+      font-size: 0.75rem;
       font-weight: 800;
-      font-size: 0.95rem;
-      color: #071f18;
+      color: #0b5134;
+      text-transform: uppercase;
     }
-    .score-badge {
-      display: inline-block;
-      background: #e8f5e9;
-      color: #1b4d3e;
+    .etiqueta-score {
+      background: #dcfce7;
+      color: #14532d;
       font-weight: 800;
-      font-size: 0.85rem;
-      padding: 4px 10px;
+      font-size: 0.8rem;
+      padding: 3px 8px;
       border-radius: 6px;
+    }
+    .etiqueta-nome {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: #071f18;
+      margin-bottom: 4px;
+    }
+    .etiqueta-valor {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #15803d;
+    }
+    .etiqueta-extra {
+      font-size: 0.76rem;
+      color: #475569;
+      margin-top: 4px;
+      line-height: 1.35;
     }
     .vazio {
       text-align: center;
-      padding: 24px 12px;
+      padding: 28px 14px;
       color: #475569;
       font-size: 0.92rem;
     }
@@ -108,28 +145,38 @@
 <body>
   <div class="container">
     <div class="header-card">
-      <h1 id="titulo-pagina">Gráfico de Desempenho</h1>
-      <p id="subtitulo-pagina">Dados sincronizados com a tabela de métricas</p>
+      <h1 id="titulo-pagina">Gráfico 3D de Desempenho</h1>
+      <p id="subtitulo-pagina">Arraste para girar o gráfico • Etiquetas sincronizadas com a tabela</p>
     </div>
 
     <div class="card">
-      <h2>📊 Gráfico de Pizza (Score)</h2>
-      <div class="chart-box">
-        <canvas id="graficoPizzaRA"></canvas>
+      <h2>🧊 Gráfico de Pizza 3D (Score)</h2>
+      <div id="scene-wrapper" class="scene-wrapper">
+        <div class="scene-hint">Arraste com o dedo ou mouse para girar em 3D</div>
       </div>
       <div id="mensagem-vazia" class="vazio" style="display:none;">
-        Nenhum dado recebido neste QR Code. Gere um novo QR Code na tela de Métricas.
+        Nenhum dado da tabela foi recebido neste QR Code. Gere o QR Code novamente pela tela de Métricas.
       </div>
     </div>
 
-    <div class="card" id="card-detalhes" style="display:none;">
-      <h2>📋 Resumo Conforme a Tabela</h2>
-      <div id="lista-detalhes" class="item-list"></div>
+    <div class="card" id="card-etiquetas" style="display:none;">
+      <h2>🏷️ Etiquetas da Tabela</h2>
+      <div id="labels-grid" class="labels-grid"></div>
     </div>
   </div>
 
   <script>
-    const CORES_PADRAO = ['#0d231a', '#1b4d3e', '#2e7d32', '#52a368', '#0288d1', '#0f766e'];
+    const CORES_HEX = [0x0d231a, 0x1b4d3e, 0x2e7d32, 0x52a368, 0x0288d1, 0x0f766e];
+    const CORES_CSS = ['#0d231a', '#1b4d3e', '#2e7d32', '#52a368', '#0288d1', '#0f766e'];
+
+    function decodificarBase64URL(str) {
+      let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) base64 += '=';
+      const bin = atob(base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
 
     function obterDadosDaURL() {
       const params = new URLSearchParams(window.location.search);
@@ -145,7 +192,9 @@
             itens: itens.map((it, idx) => ({
               pos: it.p ?? it.pos ?? (idx + 1),
               nome: it.n || it.nome || `Item ${idx + 1}`,
-              score: Number(it.s ?? it.score ?? 0)
+              score: Number(it.s ?? it.score ?? 0),
+              valor: it.v || it.valorPrincipalFmt || '',
+              detalhe: it.d || it.detalheExtra || ''
             }))
           };
         } catch (e) {
@@ -153,78 +202,231 @@
         }
       }
 
-      try {
-        const salvo = localStorage.getItem('circularis_ra_grafico_atual');
-        if (salvo) {
-          const parsedLocal = JSON.parse(salvo);
-          if (Array.isArray(parsedLocal.itens) && parsedLocal.itens.length > 0) {
-            return {
-              titulo: parsedLocal.titulo || 'Ranking',
-              tipo: parsedLocal.tipo || 'industria',
-              itens: parsedLocal.itens.map((it, idx) => ({
-                pos: it.pos ?? (idx + 1),
-                nome: it.nome || `Item ${idx + 1}`,
-                score: Number(it.score ?? 0)
-              }))
-            };
-          }
+      const hash = window.location.hash || '';
+      const match = hash.match(/dados=([^&]+)/);
+      if (match && match[1]) {
+        try {
+          const decoded = JSON.parse(decodificarBase64URL(decodeURIComponent(match[1])));
+          const itens = Array.isArray(decoded.itens) ? decoded.itens : [];
+          return {
+            titulo: decoded.titulo || 'Ranking',
+            tipo: decoded.tipo || 'industria',
+            itens: itens.map((it, idx) => ({
+              pos: it.pos ?? (idx + 1),
+              nome: it.nome || `Item ${idx + 1}`,
+              score: Number(it.score ?? 0),
+              valor: it.valorPrincipalFmt || '',
+              detalhe: it.detalheExtra || ''
+            }))
+          };
+        } catch (e) {
+          console.error('Erro ao ler #dados=:', e);
         }
-      } catch (_) {}
+      }
 
       return null;
+    }
+
+    function criarSpriteEtiqueta(textoPrincipal, textoSecundario, corHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 160;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.beginPath();
+      ctx.roundRect(12, 12, 488, 136, 22);
+      ctx.fill();
+
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = corHex;
+      ctx.stroke();
+
+      ctx.fillStyle = '#071f18';
+      ctx.font = 'bold 34px Arial';
+      ctx.textBaseline = 'top';
+      ctx.fillText(textoPrincipal.slice(0, 22), 32, 32);
+
+      ctx.fillStyle = '#15803d';
+      ctx.font = 'bold 28px Arial';
+      ctx.fillText(textoSecundario.slice(0, 26), 32, 86);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(2.5, 0.78, 1);
+      return sprite;
+    }
+
+    function montarGrafico3D(itensOrdenados) {
+      const wrapper = document.getElementById('scene-wrapper');
+      if (!wrapper || typeof THREE === 'undefined') return;
+
+      const width = wrapper.clientWidth || 600;
+      const height = wrapper.clientHeight || 360;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+      camera.position.set(0, 4.4, 5.6);
+      camera.lookAt(0, 0, 0);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      wrapper.innerHTML = '';
+      wrapper.appendChild(renderer.domElement);
+
+      const hint = document.createElement('div');
+      hint.className = 'scene-hint';
+      hint.innerText = 'Arraste com o dedo ou mouse para girar em 3D';
+      wrapper.appendChild(hint);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+      dirLight.position.set(4, 7, 5);
+      scene.add(dirLight);
+
+      const pieGroup = new THREE.Group();
+      scene.add(pieGroup);
+
+      const totalScore = itensOrdenados.reduce((acc, it) => acc + Math.max(Number(it.score) || 0, 0.1), 0);
+      let anguloAtual = 0;
+      const raio = 1.85;
+      const espessura = 0.65;
+
+      itensOrdenados.forEach((item, idx) => {
+        const valorPositivo = Math.max(Number(item.score) || 0, 0.1);
+        const fatiaAngulo = (valorPositivo / totalScore) * Math.PI * 2;
+        const corHexNum = CORES_HEX[idx % CORES_HEX.length];
+        const corHexCss = CORES_CSS[idx % CORES_CSS.length];
+
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.absarc(0, 0, raio, anguloAtual, anguloAtual + fatiaAngulo, false);
+        shape.lineTo(0, 0);
+
+        const extrudeGeo = new THREE.ExtrudeGeometry(shape, {
+          depth: espessura,
+          bevelEnabled: true,
+          bevelSegments: 2,
+          steps: 1,
+          bevelSize: 0.03,
+          bevelThickness: 0.03
+        });
+        extrudeGeo.rotateX(-Math.PI / 2);
+
+        const material = new THREE.MeshStandardMaterial({
+          color: corHexNum,
+          roughness: 0.35,
+          metalness: 0.15
+        });
+
+        const mesh = new THREE.Mesh(extrudeGeo, material);
+        const anguloMeio = anguloAtual + fatiaAngulo / 2;
+        const deslocamento = idx === 0 ? 0.18 : 0.06;
+        mesh.position.x = Math.cos(anguloMeio) * deslocamento;
+        mesh.position.z = Math.sin(anguloMeio) * deslocamento;
+        pieGroup.add(mesh);
+
+        const labelPrincipal = `#${item.pos ?? (idx + 1)} ${item.nome}`;
+        const labelSecundario = `${item.score} pts${item.valor ? ' • ' + item.valor : ''}`;
+        const sprite = criarSpriteEtiqueta(labelPrincipal, labelSecundario, corHexCss);
+        const raioEtiqueta = raio + 0.85;
+        sprite.position.set(
+          Math.cos(anguloMeio) * raioEtiqueta,
+          espessura + 0.45 + (idx % 2) * 0.25,
+          Math.sin(anguloMeio) * raioEtiqueta
+        );
+        pieGroup.add(sprite);
+
+        anguloAtual += fatiaAngulo;
+      });
+
+      let arrastando = false;
+      let ultimoX = 0;
+      let ultimoY = 0;
+
+      wrapper.addEventListener('pointerdown', (e) => {
+        arrastando = true;
+        ultimoX = e.clientX;
+        ultimoY = e.clientY;
+      });
+
+      window.addEventListener('pointerup', () => {
+        arrastando = false;
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (!arrastando) return;
+        const dx = e.clientX - ultimoX;
+        const dy = e.clientY - ultimoY;
+        ultimoX = e.clientX;
+        ultimoY = e.clientY;
+
+        pieGroup.rotation.y += dx * 0.01;
+        pieGroup.rotation.x = Math.max(-0.5, Math.min(0.6, pieGroup.rotation.x + dy * 0.008));
+      });
+
+      window.addEventListener('resize', () => {
+        const w = wrapper.clientWidth || 600;
+        const h = wrapper.clientHeight || 360;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      function animar() {
+        requestAnimationFrame(animar);
+        if (!arrastando) {
+          pieGroup.rotation.y += 0.004;
+        }
+        renderer.render(scene, camera);
+      }
+      animar();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       const dados = obterDadosDaURL();
       const tituloEl = document.getElementById('titulo-pagina');
       const subtituloEl = document.getElementById('subtitulo-pagina');
+      const sceneWrapper = document.getElementById('scene-wrapper');
       const vazioEl = document.getElementById('mensagem-vazia');
-      const cardDetalhes = document.getElementById('card-detalhes');
-      const listaDetalhes = document.getElementById('lista-detalhes');
+      const cardEtiquetas = document.getElementById('card-etiquetas');
+      const labelsGrid = document.getElementById('labels-grid');
 
       if (!dados || !Array.isArray(dados.itens) || dados.itens.length === 0) {
+        sceneWrapper.style.display = 'none';
         vazioEl.style.display = 'block';
         return;
       }
 
       const ordenados = [...dados.itens].sort((a, b) => Number(b.score) - Number(a.score));
 
-      tituloEl.innerText = dados.titulo || 'Gráfico de Desempenho';
+      tituloEl.innerText = `${dados.titulo || 'Ranking'} (3D)`;
       subtituloEl.innerText = dados.tipo === 'cooperativa'
-        ? 'Comparativo de Cooperativas de Coleta conforme a tabela'
-        : 'Ranking de Fornecedores conforme a tabela';
+        ? 'Gráfico 3D de Cooperativas conforme a tabela'
+        : 'Gráfico 3D de Fornecedores conforme a tabela';
 
-      const labels = ordenados.map((item, idx) => `#${item.pos ?? (idx + 1)} ${item.nome}`);
-      const scores = ordenados.map(item => Number(item.score) || 0);
-      const cores = ordenados.map((_, idx) => CORES_PADRAO[idx % CORES_PADRAO.length]);
+      montarGrafico3D(ordenados);
 
-      const ctx = document.getElementById('graficoPizzaRA').getContext('2d');
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [{
-            data: scores,
-            backgroundColor: cores
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 11 } } }
-          }
-        }
-      });
-
-      cardDetalhes.style.display = 'block';
-      listaDetalhes.innerHTML = ordenados.map((item, idx) => `
-        <div class="item-row ${idx === 0 ? 'lider' : ''}">
-          <span class="dot" style="background:${cores[idx]}"></span>
-          <div class="item-nome">#${item.pos ?? (idx + 1)} • ${item.nome}</div>
-          <span class="score-badge">${item.score} pts</span>
-        </div>
-      `).join('');
+      cardEtiquetas.style.display = 'block';
+      labelsGrid.innerHTML = ordenados.map((item, idx) => {
+        const corCss = CORES_CSS[idx % CORES_CSS.length];
+        return `
+          <div class="etiqueta-card ${idx === 0 ? 'lider' : ''}" style="border-left-color:${corCss};">
+            <div class="etiqueta-topo">
+              <span class="etiqueta-pos">#${item.pos ?? (idx + 1)} na tabela</span>
+              <span class="etiqueta-score">${item.score} pts</span>
+            </div>
+            <div class="etiqueta-nome">${item.nome}</div>
+            ${item.valor ? `<div class="etiqueta-valor">${item.valor}</div>` : ''}
+            ${item.detalhe ? `<div class="etiqueta-extra">${item.detalhe}</div>` : ''}
+          </div>
+        `;
+      }).join('');
     });
   </script>
 </body>
