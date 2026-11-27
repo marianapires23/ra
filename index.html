@@ -31,18 +31,18 @@
       position: relative;
       z-index: 2;
       min-height: 100dvh;
-      padding: clamp(12px, 3vw, 22px);
+      padding: clamp(10px, 2.8vw, 20px);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       pointer-events: none;
     }
 
     .topo-painel {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       max-width: min(100%, 440px);
       pointer-events: auto;
     }
@@ -50,19 +50,19 @@
     .cabecalho-card {
       background: rgba(255, 255, 255, 0.95);
       color: #071f18;
-      padding: 11px 14px;
+      padding: 10px 14px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
     }
 
     .cabecalho-card h1 {
-      font-size: clamp(0.96rem, 3.8vw, 1.15rem);
+      font-size: clamp(0.95rem, 3.8vw, 1.12rem);
       font-weight: 800;
       color: #071f18;
     }
 
     .cabecalho-card p {
-      font-size: clamp(0.72rem, 2.8vw, 0.8rem);
+      font-size: clamp(0.72rem, 2.8vw, 0.78rem);
       color: #2e7d32;
       font-weight: 700;
       margin-top: 2px;
@@ -71,12 +71,12 @@
     .painel-barras {
       background: rgba(255, 255, 255, 0.93);
       color: #071f18;
-      padding: 10px 14px;
+      padding: 9px 14px;
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
     }
 
     .barra-linha {
@@ -84,7 +84,7 @@
       grid-template-columns: 88px 1fr 42px;
       align-items: center;
       gap: 8px;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 700;
     }
 
@@ -104,17 +104,61 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       pointer-events: auto;
+    }
+
+    /* Indicador compacto para identificar cada fatia na tela do celular */
+    .indicador-fatias {
+      width: min(100%, 440px);
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+
+    .indicador-fatias::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip-fatia {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(7, 31, 24, 0.88);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .chip-fatia.ativo {
+      border-color: #86efac;
+      background: rgba(20, 83, 45, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .ponto-cor {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.6);
     }
 
     .dica-toque {
       background: rgba(7, 31, 24, 0.84);
       color: #d1fae5;
       border: 1px solid rgba(167, 243, 208, 0.25);
-      padding: 6px 14px;
+      padding: 5px 13px;
       border-radius: 999px;
-      font-size: clamp(0.72rem, 2.8vw, 0.8rem);
+      font-size: clamp(0.7rem, 2.7vw, 0.78rem);
       font-weight: 600;
     }
 
@@ -124,7 +168,7 @@
       color: #071f18;
       border-radius: 14px;
       border-top: 5px solid #2e7d32;
-      padding: 14px 16px;
+      padding: 13px 15px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
       display: none;
     }
@@ -134,10 +178,13 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .etq-pos {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 0.72rem;
       font-weight: 800;
       color: #0f4033;
@@ -172,7 +219,7 @@
     }
 
     .etq-nome {
-      font-size: clamp(0.98rem, 4vw, 1.12rem);
+      font-size: clamp(0.96rem, 3.9vw, 1.1rem);
       font-weight: 800;
       color: #071f18;
       margin-bottom: 8px;
@@ -186,7 +233,7 @@
       border: 1px solid #e2e8f0;
       border-radius: 10px;
       padding: 10px;
-      font-size: clamp(0.75rem, 3vw, 0.82rem);
+      font-size: clamp(0.74rem, 2.9vw, 0.82rem);
     }
 
     .etq-campo-full {
@@ -195,7 +242,7 @@
 
     .etq-rotulo {
       color: #64748b;
-      font-size: 0.68rem;
+      font-size: 0.66rem;
       font-weight: 700;
       text-transform: uppercase;
       display: block;
@@ -236,7 +283,7 @@
     <div class="topo-painel">
       <header class="cabecalho-card">
         <h1 id="titulo-grafico">Gráfico 3D</h1>
-        <p id="subtitulo-grafico">Arraste para girar • Toque numa fatia para ver os detalhes</p>
+        <p id="subtitulo-grafico">Arraste para girar • Toque numa fatia para ver os dados da tabela</p>
       </header>
 
       <section id="painel-barras" class="painel-barras" style="display:none;">
@@ -259,11 +306,15 @@
     </div>
 
     <div class="rodape-ui">
-      <div id="dica-toque" class="dica-toque">Toque no gráfico 3D para abrir a etiqueta da tabela</div>
+      <div id="indicador-fatias" class="indicador-fatias"></div>
+      <div id="dica-toque" class="dica-toque">Toque em uma fatia ou indicador para ver os dados da tabela</div>
 
       <aside id="etiqueta-detalhes" class="etiqueta-detalhes" aria-live="polite">
         <div class="etq-topo">
-          <span id="etq-pos" class="etq-pos">#1</span>
+          <span id="etq-pos" class="etq-pos">
+            <span id="etq-cor" class="ponto-cor"></span>
+            <span id="etq-pos-texto">#1</span>
+          </span>
           <div class="etq-dir">
             <span id="etq-score" class="etq-score">0 pts</span>
             <button type="button" class="btn-fechar" onclick="fecharEtiqueta()" aria-label="Fechar">✕</button>
@@ -280,8 +331,8 @@
   </div>
 
   <script>
-    const CORES_3D = [0x1b5e20, 0x2e7d32, 0x43a047, 0x66bb6a, 0x0288d1, 0x00897b];
-    const CORES_CSS = ['#1b5e20', '#2e7d32', '#43a047', '#66bb6a', '#0288d1', '#00897b'];
+    const CORES_3D = [0x1b5e20, 0x388e3c, 0x66bb6a, 0x0288d1, 0x00897b, 0x8bc34a];
+    const CORES_CSS = ['#1b5e20', '#388e3c', '#66bb6a', '#0288d1', '#00897b', '#8bc34a'];
 
     let dadosBase = null;
     let itensAnalisadosAtuais = [];
@@ -322,6 +373,12 @@
       return 0;
     }
 
+    function extrairPreco(item) {
+      if (item.precoFmt) return item.precoFmt;
+      const m = String(item.detalhe || '').match(/Preço:\s*([^•]+)/i);
+      return m ? m[1].trim() : '';
+    }
+
     function lerDadosTabelaURL() {
       const params = new URLSearchParams(window.location.search);
       const raw = params.get('grafico');
@@ -330,13 +387,18 @@
       try {
         const parsed = JSON.parse(raw);
         const lista = Array.isArray(parsed.i) ? parsed.i : (Array.isArray(parsed.itens) ? parsed.itens : []);
+        const tituloGeral = parsed.t || parsed.titulo || 'Ranking 3D';
+        const produtoPadrao = tituloGeral.replace(/^Produto:\s*/i, '').trim();
+
         return {
-          titulo: parsed.t || parsed.titulo || 'Ranking 3D',
+          titulo: tituloGeral,
           tipo: parsed.tp || parsed.tipo || 'industria',
           pesos: parsed.w || null,
           itens: lista.map((it, idx) => ({
             pos: it.p ?? it.pos ?? (idx + 1),
             nome: it.n || it.nome || `Item ${idx + 1}`,
+            produto: it.pr || it.produto || produtoPadrao,
+            precoFmt: it.prc || '',
             scoreOriginal: Number(it.s ?? it.score ?? 0),
             valor: it.v || it.valorPrincipalFmt || '',
             detalhe: it.d || it.detalheExtra || '',
@@ -384,7 +446,8 @@
           ...item,
           scoreFinal: scoreCalculado,
           distNum: distsNum[i],
-          avalNum: avalsNum[i]
+          avalNum: avalsNum[i],
+          precoTexto: extrairPreco(item)
         };
       });
 
@@ -404,6 +467,22 @@
       });
     }
 
+    function renderizarIndicadorFatias(itensAnalisados) {
+      const box = document.getElementById('indicador-fatias');
+      if (!box) return;
+
+      box.innerHTML = itensAnalisados.map((item, idx) => {
+        const cor = CORES_CSS[idx % CORES_CSS.length];
+        const ativo = itemAtivoIdx === idx ? 'ativo' : '';
+        return `
+          <button type="button" class="chip-fatia ${ativo}" onclick="mostrarEtiquetaPorIndice(${idx})">
+            <span class="ponto-cor" style="background:${cor};"></span>
+            <span>#${item.posTabela} ${item.nome} • ${item.scoreFinal} pts</span>
+          </button>
+        `;
+      }).join('');
+    }
+
     function fecharEtiqueta() {
       itemAtivoIdx = null;
       document.getElementById('etiqueta-detalhes').style.display = 'none';
@@ -412,6 +491,13 @@
         m.position.x = m.userData.baseX;
         m.position.z = m.userData.baseZ;
       });
+      renderizarIndicadorFatias(itensAnalisadosAtuais);
+    }
+
+    function mostrarEtiquetaPorIndice(idx) {
+      const item = itensAnalisadosAtuais[idx];
+      if (!item || !dadosBase) return;
+      mostrarEtiquetaItem(item, idx, dadosBase.tipo);
     }
 
     function mostrarEtiquetaItem(item, idx, tipo) {
@@ -424,20 +510,30 @@
       box.style.display = 'block';
       document.getElementById('dica-toque').style.display = 'none';
 
-      document.getElementById('etq-pos').innerText =
+      document.getElementById('etq-cor').style.background = corCss;
+      document.getElementById('etq-pos-texto').innerText =
         `#${item.posTabela} • ${tipo === 'cooperativa' ? 'Cooperativa' : 'Fornecedor'}`;
-      document.getElementById('etq-score').innerText = `${item.scoreFinal} pts`;
+      document.getElementById('etq-score').innerText = `${item.scoreFinal} pts (${item.participacaoPct}%)`;
       document.getElementById('etq-nome').innerText = item.nome;
 
-      const rotuloValor = tipo === 'cooperativa' ? 'Custo Total Estimado' : 'Orçamento / Valor';
-      const celulas = [
-        `<div><span class="etq-rotulo">Participação</span><span class="etq-dado">${item.participacaoPct}%</span></div>`,
-        `<div><span class="etq-rotulo">${rotuloValor}</span><span class="etq-dado-destaque">${item.valor || '—'}</span></div>`
-      ];
+      const rotuloValor = tipo === 'cooperativa' ? 'Custo Total Estimado' : 'Orçamento Total';
+      const distExibida = item.distNum > 0
+        ? `${item.distNum} km`
+        : (item.distanciaKm !== '' && item.distanciaKm !== null && item.distanciaKm !== undefined ? `${item.distanciaKm} km` : '—');
 
-      if (item.distNum > 0 || item.distanciaKm !== '') {
-        celulas.push(`<div><span class="etq-rotulo">Distância</span><span class="etq-dado">${item.distNum || item.distanciaKm} km</span></div>`);
+      const celulas = [];
+
+      if (item.produto) {
+        celulas.push(`<div><span class="etq-rotulo">Produto / Item</span><span class="etq-dado">${item.produto}</span></div>`);
       }
+
+      celulas.push(`<div><span class="etq-rotulo">${rotuloValor}</span><span class="etq-dado-destaque">${item.valor || '—'}</span></div>`);
+
+      if (item.precoTexto) {
+        celulas.push(`<div><span class="etq-rotulo">Preço Unitário</span><span class="etq-dado">${item.precoTexto}</span></div>`);
+      }
+
+      celulas.push(`<div><span class="etq-rotulo">Distância</span><span class="etq-dado">${distExibida}</span></div>`);
 
       if (tipo !== 'cooperativa' && (item.avalNum > 0 || item.avaliacao !== '')) {
         celulas.push(`<div><span class="etq-rotulo">Avaliação</span><span class="etq-dado">⭐ ${item.avalNum || item.avaliacao}</span></div>`);
@@ -454,6 +550,8 @@
         m.position.x = m.userData.baseX + Math.cos(m.userData.anguloMeio) * destaque;
         m.position.z = m.userData.baseZ - Math.sin(m.userData.anguloMeio) * destaque;
       });
+
+      renderizarIndicadorFatias(itensAnalisadosAtuais);
     }
 
     function reconstruirFatias3D(itensAnalisados, tipo) {
@@ -506,6 +604,8 @@
 
         anguloAtual += anguloFatia;
       });
+
+      renderizarIndicadorFatias(itensAnalisados);
 
       if (itemAtivoIdx !== null && itensAnalisados[itemAtivoIdx]) {
         mostrarEtiquetaItem(itensAnalisados[itemAtivoIdx], itemAtivoIdx, tipo);
